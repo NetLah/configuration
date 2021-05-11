@@ -10,15 +10,15 @@
     <AssemblyName>NetLah.Extensions.Configuration</AssemblyName>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="NetLah.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="NetLah.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
