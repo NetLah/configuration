@@ -69,7 +69,7 @@ ASPNETCORE_ENVIRONMENT = Development
 DOTNET_ENVIRONMENT = Staging
 ```
 
-### Specific environmentName during build configuration
+### Specifying environmentName during build configuration
 
 Sometime, we cannot set the environmentName using environment variable, or we need different environment configuration build lik in unit test project, we can specific the environmentName.
 

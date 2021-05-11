@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <XmlKey1>xmlValue2</XmlKey1>
+  <XmlSection3>
+    <Key4>Value5</Key4>
+  </XmlSection3>
+</configuration>
