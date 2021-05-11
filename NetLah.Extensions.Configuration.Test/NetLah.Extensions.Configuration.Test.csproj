@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="appsettings.dev.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="appsettings.ini" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />

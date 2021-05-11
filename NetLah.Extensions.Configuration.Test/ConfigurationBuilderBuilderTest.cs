@@ -31,8 +31,9 @@ namespace NetLah.Extensions.Configuration
         }
 
         [Fact]
-        public void Build_Production_changeTo_Development_Success()
+        public void Build_Production_changeTo_dev_Success()
         {
+            // add file 'appsettings.dev.json' to solve Ubuntu file name case-sensitive
             var builder = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(new[] { "--CommandLineKey", "CommandLineValue1" })
                 .WithEnvironment("Production");
 
@@ -41,8 +42,8 @@ namespace NetLah.Extensions.Configuration
             var configuration1 = builder.Build();
             Assert.Equal("EnvironmentProductionValue1", configuration1["EnvironmentKey"]);
 
-            var configuration2 = builder.WithEnvironment("development").Build();
-            Assert.Equal("development", builder.EnvironmentName);
+            var configuration2 = builder.WithEnvironment("dev").Build();
+            Assert.Equal("dev", builder.EnvironmentName);
 
             Assert.NotNull(configuration2);
             Assert.Equal("MainValue1", configuration2["MainKey"]);
