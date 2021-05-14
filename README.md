@@ -2,6 +2,10 @@
 
 [NetLah.Extensions.Configuration](https://www.nuget.org/packages/NetLah.Extensions.Configuration/) is a library which contains a set of reusable classes for build configuration with environment. These library classes are `ConfigurationBuilderBuilder` and `CertificateLoader`.
 
+## Nuget package
+
+[![NuGet](https://img.shields.io/nuget/v/NetLah.Extensions.Configuration.svg?style=flat-square&label=nuget&colorB=00b200)](https://www.nuget.org/packages/NetLah.Extensions.Configuration/)
+
 ## Getting started
 
 ConsoleApp
