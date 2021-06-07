@@ -6,13 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.dev.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="appsettings.ini" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="appsettings.Production.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="appsettings.Testing.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="appsettings.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="appsettings.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\*.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
