@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 
 namespace NetLah.Extensions.Configuration
@@ -20,12 +21,20 @@ namespace NetLah.Extensions.Configuration
             }
             else if (certInfo.IsFileCert)
             {
-                var cert = new X509Certificate2(certInfo.Path, certInfo.Password, X509KeyStorageFlags.EphemeralKeySet);
+                var isMacOs = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+
+                var keyStorageFlag = !requiredPrivateKey || isMacOs ?
+                    X509KeyStorageFlags.DefaultKeySet :
+                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet;
+
+                var cert = new X509Certificate2(certInfo.Path, certInfo.Password, keyStorageFlag);
+
                 if (requiredPrivateKey && !cert.HasPrivateKey)
                 {
                     cert.Dispose();
                     throw new InvalidOperationException("The certificate doesn't have private key");
                 }
+
                 return cert;
             }
             else if (certInfo.IsStoreThumbprint || certInfo.IsStoreSubject)
