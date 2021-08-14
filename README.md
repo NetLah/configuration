@@ -1,6 +1,6 @@
 # NetLah.Extensions.Configuration - .NET Library
 
-[NetLah.Extensions.Configuration](https://www.nuget.org/packages/NetLah.Extensions.Configuration/) is a library which contains a set of reusable classes for build configuration with environment. These library classes are `ConfigurationBuilderBuilder` and `CertificateLoader`.
+[NetLah.Extensions.Configuration](https://www.nuget.org/packages/NetLah.Extensions.Configuration/) is a library which contains a set of reusable classes for build configuration with environment. These library classes are `ConfigurationBuilderBuilder`, `CertificateLoader` and `ConnectionStringsHelper`.
 
 ## Nuget package
 
@@ -106,3 +106,72 @@ var configuration = ConfigurationBuilderBuilder.Create<Program>()
     )
     .Build();
 ```
+
+## Helper parse connectionStrings from Configuratin with database provider information
+
+Reference at https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?#connection-string-prefixes
+
+### Support provider
+
+```
+public enum DbProviders
+{
+    Custom,
+    SQLServer,
+    PostgreSQL,
+    MySQL,
+}
+```
+
+List of supportted provider name
+
+```
+SQLServer
+Mssql
+SQLAzure
+System.Data.SqlClient
+
+MySQL
+MySql.Data.MySqlClient
+
+PostgreSQL
+```
+
+### Configuration appsettings.json or environment
+
+```
+"ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=dbname;Integrated Security=True;",
+    "DefaultConnection_ProviderName": "System.Data.SqlClient",
+    "BlogConnection": "AccountEndpoint=https://7d48.documents.azure.com:443/;",
+    "BlogConnection_ProviderName": "Cosmos1"
+}
+
+```
+
+### Usage:
+
+```
+IConfiguration configuration;
+var connStrsHelper = new ConnectionStringsHelper(configuration);
+var conn = connStrsHelper["defaultConnection"];
+if (conn != null) {
+    if (conn.Provider == DbProviders.PostgreSQL) {
+        ...
+    } else if (conn.Provider == DbProviders.MySQL) {
+        ...
+    } else if (conn.Provider == DbProviders.SQLServer) {
+        ...
+    } else if (conn.Provider == DbProviders.Custom && conn.Custom == "Cosmos1") {
+        ...
+    }
+}
+```
+
+### Troubleshooting appsettings, configuration and connection strings
+
+Use docker for troubleshooting
+
+https://github.com/NetLah/EchoServiceApi
+
+https://hub.docker.com/r/netlah/echo-service-api
