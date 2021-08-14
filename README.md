@@ -123,7 +123,7 @@ public enum DbProviders
 }
 ```
 
-List of supportted provider name
+List of supported provider name
 
 ```
 SQLServer
