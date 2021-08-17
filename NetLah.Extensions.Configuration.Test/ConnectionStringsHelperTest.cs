@@ -47,6 +47,18 @@ namespace NetLah.Extensions.Configuration.Test
             ["connectionstrings:COSmos14_cOSMOS"] = "server=cosmos14;",
             ["connectionstrings:Sqlserver15_mssql"] = "server=local15;",
             ["connectionstrings:Sqlserver16_sqlazure"] = "server=local16;",
+            ["connectionstrings:SQLServer17"] = "type=Microsoft.Data.SqlClient;",
+            ["connectionstrings:SQLServer17_providerName"] = "Microsoft.Data.SqlClient",
+            ["connectionstrings:SQLServer18_Microsoft.Data.SqlClient"] = "type=Microsoft.Data.SqlClient18;",
+            ["connectionstrings:MySqL19"] = "server=local19;",
+            ["connectionstrings:MYSql19_providerName"] = "mysqlconnector",
+            ["connectionstrings:MYSql20_MYSQLCONNECTOR"] = "server=local20;",
+            ["connectionstrings:postGREsql21"] = "server=local21;",
+            ["connectionstrings:PostgreSql21_providerName"] = "npgsql",
+            ["connectionstrings:pOSTgreSQL22_NPGSQL"] = "server=local22;",
+            ["connectionstrings:postGREsql23"] = "server=local23;",
+            ["connectionstrings:PostgreSql23_providerName"] = "POSTGRES",
+            ["connectionstrings:pOSTgreSQL24_postgres"] = "server=local24;",
         });
 
         private static ConnectionStringsHelper GetService() => new(GetConfiguration());
@@ -105,6 +117,14 @@ namespace NetLah.Extensions.Configuration.Test
         [InlineData("COSMOS14", "server=cosmos14;", DbProviders.Custom, "cOSMOS")]
         [InlineData("Sqlserver15", "server=local15;", DbProviders.SQLServer, null)]
         [InlineData("Sqlserver16", "server=local16;", DbProviders.SQLServer, null)]
+        [InlineData("sqlserver17", "type=Microsoft.Data.SqlClient;", DbProviders.SQLServer, null)]
+        [InlineData("sqlserver18", "type=Microsoft.Data.SqlClient18;", DbProviders.SQLServer, null)]
+        [InlineData("mysql19", "server=local19;", DbProviders.MySQL, null)]
+        [InlineData("mysql20", "server=local20;", DbProviders.MySQL, null)]
+        [InlineData("postgresql21", "server=local21;", DbProviders.PostgreSQL, null)]
+        [InlineData("postgresql22", "server=local22;", DbProviders.PostgreSQL, null)]
+        [InlineData("postgresql23", "server=local23;", DbProviders.PostgreSQL, null)]
+        [InlineData("postgresql24", "server=local24;", DbProviders.PostgreSQL, null)]
         [InlineData("NoExist", null, DbProviders.Custom, null)]
         public void IndexerGetConnectionTest(string connectionName, string expectedConnectionString, DbProviders expectedProvider, string expectedCustom)
         {
@@ -149,12 +169,20 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
                 new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
                 new Entry("MySqL10", new ConnectionStringInfo("server=local10;", DbProviders.MySQL)),
+                new Entry("MySqL19", new ConnectionStringInfo("server=local19;", DbProviders.MySQL)),
+                new Entry("MYSql20", new ConnectionStringInfo("server=local20;", DbProviders.MySQL)),
                 new Entry("MysQL8", new ConnectionStringInfo("server=local8;", DbProviders.MySQL)),
                 new Entry("MySqL9", new ConnectionStringInfo("server=local9;", DbProviders.MySQL)),
                 new Entry("postGREsql11", new ConnectionStringInfo("server=local11;", DbProviders.PostgreSQL)),
                 new Entry("pOSTgreSQL12", new ConnectionStringInfo("server=local12;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql21", new ConnectionStringInfo("server=local21;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL22", new ConnectionStringInfo("server=local22;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql23", new ConnectionStringInfo("server=local23;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL24", new ConnectionStringInfo("server=local24;", DbProviders.PostgreSQL)),
                 new Entry("Sqlserver15", new ConnectionStringInfo("server=local15;", DbProviders.SQLServer)),
                 new Entry("Sqlserver16", new ConnectionStringInfo("server=local16;", DbProviders.SQLServer)),
+                new Entry("SQLServer17", new ConnectionStringInfo("type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
+                new Entry("SQLServer18", new ConnectionStringInfo("type=Microsoft.Data.SqlClient18;", DbProviders.SQLServer)),
                 new Entry("sqlserver2", new ConnectionStringInfo("type=sqlserver;", DbProviders.SQLServer)),
                 new Entry("sqLServer3", new ConnectionStringInfo("type=MSSQL;", DbProviders.SQLServer)),
                 new Entry("sqLSErver4", new ConnectionStringInfo("type=SQLAzure;", DbProviders.SQLServer)),
@@ -231,6 +259,8 @@ namespace NetLah.Extensions.Configuration.Test
             Assert.Equal(new Entry[] {
                 new Entry("defaultConnection", new ConnectionStringInfo ("server=mysqL1;database=default;", DbProviders.MySQL)),
                 new Entry("MySqL10", new ConnectionStringInfo("server=local10;", DbProviders.MySQL)),
+                new Entry("MySqL19", new ConnectionStringInfo("server=local19;", DbProviders.MySQL)),
+                new Entry("MYSql20", new ConnectionStringInfo("server=local20;", DbProviders.MySQL)),
                 new Entry("MysQL8", new ConnectionStringInfo("server=local8;", DbProviders.MySQL)),
                 new Entry("MySqL9", new ConnectionStringInfo("server=local9;", DbProviders.MySQL)),
             },
@@ -249,6 +279,10 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("defaultConnection", new ConnectionStringInfo ("server=postgresql1;database=default;", DbProviders.PostgreSQL)),
                 new Entry("postGREsql11", new ConnectionStringInfo("server=local11;", DbProviders.PostgreSQL)),
                 new Entry("pOSTgreSQL12", new ConnectionStringInfo("server=local12;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql21", new ConnectionStringInfo("server=local21;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL22", new ConnectionStringInfo("server=local22;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql23", new ConnectionStringInfo("server=local23;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL24", new ConnectionStringInfo("server=local24;", DbProviders.PostgreSQL)),
             },
             connectionStrings,
             new EntryComparer());
@@ -265,6 +299,8 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("defaultConnection", new ConnectionStringInfo ("server=sqlserver1;database=default;", DbProviders.SQLServer)),
                 new Entry("Sqlserver15", new ConnectionStringInfo("server=local15;", DbProviders.SQLServer)),
                 new Entry("Sqlserver16", new ConnectionStringInfo("server=local16;", DbProviders.SQLServer)),
+                new Entry("SQLServer17", new ConnectionStringInfo("type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
+                new Entry("SQLServer18", new ConnectionStringInfo("type=Microsoft.Data.SqlClient18;", DbProviders.SQLServer)),
                 new Entry("sqlserver2", new ConnectionStringInfo("type=sqlserver;", DbProviders.SQLServer)),
                 new Entry("sqLServer3", new ConnectionStringInfo("type=MSSQL;", DbProviders.SQLServer)),
                 new Entry("sqLSErver4", new ConnectionStringInfo("type=SQLAzure;", DbProviders.SQLServer)),
@@ -311,9 +347,13 @@ namespace NetLah.Extensions.Configuration.Test
         [InlineData("mssql", DbProviders.SQLServer, null)]
         [InlineData("sqlazure", DbProviders.SQLServer, null)]
         [InlineData("system.data.sqlclient", DbProviders.SQLServer, null)]
+        [InlineData("Microsoft.Data.SqlClient", DbProviders.SQLServer, null)]
         [InlineData("mysql", DbProviders.MySQL, null)]
         [InlineData("mysql.data.mysqlclient", DbProviders.MySQL, null)]
+        [InlineData("MySqlConnector", DbProviders.MySQL, null)]
         [InlineData("postgresql", DbProviders.PostgreSQL, null)]
+        [InlineData("Npgsql", DbProviders.PostgreSQL, null)]
+        [InlineData("Postgres", DbProviders.PostgreSQL, null)]
         [InlineData("cosmos", DbProviders.Custom, "cosmos")]
         [InlineData("Cosmos", DbProviders.Custom, "Cosmos")]
         [InlineData("COSMOS", DbProviders.Custom, "COSMOS")]

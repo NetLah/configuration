@@ -125,18 +125,22 @@ namespace NetLah.Extensions.Configuration
 
             switch (providerName?.ToUpperInvariant())
             {
-                case "SQLSERVER":
+                case "MICROSOFT.DATA.SQLCLIENT":
                 case "MSSQL":
                 case "SQLAZURE":
+                case "SQLSERVER":
                 case "SYSTEM.DATA.SQLCLIENT":
                     provider = DbProviders.SQLServer;
                     break;
 
                 case "MYSQL":
+                case "MYSQLCONNECTOR":
                 case "MYSQL.DATA.MYSQLCLIENT":
                     provider = DbProviders.MySQL;
                     break;
 
+                case "NPGSQL":
+                case "POSTGRES":
                 case "POSTGRESQL":
                     provider = DbProviders.PostgreSQL;
                     break;
