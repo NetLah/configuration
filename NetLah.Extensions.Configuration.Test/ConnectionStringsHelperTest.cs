@@ -59,6 +59,8 @@ namespace NetLah.Extensions.Configuration.Test
             ["connectionstrings:postGREsql23"] = "server=local23;",
             ["connectionstrings:PostgreSql23_providerName"] = "POSTGRES",
             ["connectionstrings:pOSTgreSQL24_postgres"] = "server=local24;",
+            ["connectionstrings:Redis:configuration"] = "localhost:6379;",
+            ["connectionstrings:UserProfile:ConnectionString"] = "AccountEndpoint=https://7d48.documents.azure.com:443/;",
         });
 
         private static ConnectionStringsHelper GetService() => new(GetConfiguration());
@@ -126,7 +128,7 @@ namespace NetLah.Extensions.Configuration.Test
         [InlineData("postgresql23", "server=local23;", DbProviders.PostgreSQL, null)]
         [InlineData("postgresql24", "server=local24;", DbProviders.PostgreSQL, null)]
         [InlineData("NoExist", null, DbProviders.Custom, null)]
-        public void IndexerGetConnectionTest(string connectionName, string expectedConnectionString, DbProviders expectedProvider, string expectedCustom)
+        public void GetConnectionTest(string connectionName, string expectedConnectionString, DbProviders expectedProvider, string expectedCustom)
         {
             ConnectionStringInfo result = GetService()[connectionName];
 
@@ -140,14 +142,31 @@ namespace NetLah.Extensions.Configuration.Test
                 Assert.Equal(expectedConnectionString, result.ConnectionString);
                 Assert.Equal(expectedProvider, result.Provider);
                 Assert.Equal(expectedCustom, result.Custom);
+                Assert.IsNotType<ConnectionStringComplexInfo>(result);
             }
+        }
+
+        [Theory]
+        [InlineData("Redis", "configuration", "localhost:6379;")]
+        [InlineData("userProfile", "ConnectionString", "AccountEndpoint=https://7d48.documents.azure.com:443/;")]
+        public void GetConnectionComplexTest(string connectionName, string configKey, string expectedConfigValue)
+        {
+            ConnectionStringInfo conn = GetService()[connectionName];
+
+            var result = Assert.IsType<ConnectionStringComplexInfo>(conn);
+            Assert.Null(result.ConnectionString);
+            Assert.Equal(DbProviders.Custom, result.Provider);
+            Assert.Null(result.Custom);
+
+            Assert.NotNull(result.Configuration);
+            Assert.Equal(expectedConfigValue, result.Configuration[configKey]);
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("      ")]
-        public void IndexerGetNullConnectionNameTest(string connectionName)
+        public void GetNullConnectionNameTest(string connectionName)
         {
             var connectionStringsHelper = GetService();
 
@@ -179,6 +198,7 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("pOSTgreSQL22", new ConnectionStringInfo("server=local22;", DbProviders.PostgreSQL)),
                 new Entry("postGREsql23", new ConnectionStringInfo("server=local23;", DbProviders.PostgreSQL)),
                 new Entry("pOSTgreSQL24", new ConnectionStringInfo("server=local24;", DbProviders.PostgreSQL)),
+                new Entry("Redis", new ConnectionStringInfo(null, DbProviders.Custom)),
                 new Entry("Sqlserver15", new ConnectionStringInfo("server=local15;", DbProviders.SQLServer)),
                 new Entry("Sqlserver16", new ConnectionStringInfo("server=local16;", DbProviders.SQLServer)),
                 new Entry("SQLServer17", new ConnectionStringInfo("type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
@@ -189,6 +209,7 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("SQLServer5", new ConnectionStringInfo("type=System.Data.SqlClient;", DbProviders.SQLServer)),
                 new Entry("sqlSERVER6", new ConnectionStringInfo("server=local6;", DbProviders.SQLServer)),
                 new Entry("sqLServer7", new ConnectionStringInfo("server=local7;", DbProviders.SQLServer)),
+                new Entry("UserProfile", new ConnectionStringInfo(null, DbProviders.Custom)),
             },
             allConnectionStrings,
             new EntryComparer());
@@ -202,7 +223,7 @@ namespace NetLah.Extensions.Configuration.Test
             var connectionStrings = GetByProviderName(selectProviderName);
 
             Assert.Equal(new Entry[] {
-                new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom,selectProviderName)),
+                new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, selectProviderName)),
                 new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, selectProviderName)),
                 new Entry("defaultConnection", new ConnectionStringInfo ("server=cosmos1;database=default;", DbProviders.Custom,selectProviderName)),
             },
@@ -244,6 +265,8 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, "cosmos")),
                 new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
                 new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
+                new Entry("Redis", new ConnectionStringInfo(null, DbProviders.Custom)),
+                new Entry("UserProfile", new ConnectionStringInfo(null, DbProviders.Custom)),
             },
             connectionStrings,
             new EntryComparer());
