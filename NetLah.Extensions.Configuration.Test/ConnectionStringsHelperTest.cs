@@ -61,6 +61,7 @@ namespace NetLah.Extensions.Configuration.Test
             ["connectionstrings:pOSTgreSQL24_postgres"] = "server=local24;",
             ["connectionstrings:Redis:configuration"] = "localhost:6379;",
             ["connectionstrings:UserProfile:ConnectionString"] = "AccountEndpoint=https://7d48.documents.azure.com:443/;",
+            ["connectionstrings:DataProtection_Redis1:configuration"] = "localhost:36379;",
         });
 
         private static ConnectionStringsHelper GetService() => new(GetConfiguration());
@@ -68,8 +69,10 @@ namespace NetLah.Extensions.Configuration.Test
         private static Entry[] GetByProviderName(string selectProviderName) => GetByProviderObject(selectProviderName);
 
         private static Entry[] GetByProviderObject(object selectedProvider)
-            => GetService()
-                .ParseConnectionStrings(selectedProvider)
+            => GetArray(GetService().ParseConnectionStrings(selectedProvider));
+
+        private static Entry[] GetArray(IEnumerable<KeyValuePair<string, ConnectionStringInfo>> keyValues)
+            => keyValues
                 .OrderBy(kv => kv.Key)
                 .Select(kv => new Entry(kv.Key, kv.Value))
                 .ToArray();
@@ -147,16 +150,18 @@ namespace NetLah.Extensions.Configuration.Test
         }
 
         [Theory]
-        [InlineData("Redis", "configuration", "localhost:6379;")]
-        [InlineData("userProfile", "ConnectionString", "AccountEndpoint=https://7d48.documents.azure.com:443/;")]
-        public void GetConnectionComplexTest(string connectionName, string configKey, string expectedConfigValue)
+        [InlineData("Redis", "configuration", "localhost:6379;", null)]
+        [InlineData("userProfile", "ConnectionString", "AccountEndpoint=https://7d48.documents.azure.com:443/;", null)]
+        [InlineData("DataProtection", "configuration", "localhost:36379;", "Redis1")]
+        [InlineData("DataProtection_Redis1", "configuration", "localhost:36379;", null)]
+        public void GetConnectionComplexTest(string connectionName, string configKey, string expectedConfigValue, string expectedCustom)
         {
             ConnectionStringInfo conn = GetService()[connectionName];
 
             var result = Assert.IsType<ConnectionStringComplexInfo>(conn);
             Assert.Null(result.ConnectionString);
             Assert.Equal(DbProviders.Custom, result.Provider);
-            Assert.Null(result.Custom);
+            Assert.Equal(expectedCustom, result.Custom);
 
             Assert.NotNull(result.Configuration);
             Assert.Equal(expectedConfigValue, result.Configuration[configKey]);
@@ -178,15 +183,28 @@ namespace NetLah.Extensions.Configuration.Test
         [Fact]
         public void AllConnectionStringsTest()
         {
-            var allConnectionStrings = GetService().ConnectionStrings
-                .OrderBy(kv => kv.Key)
-                .Select(kv => new Entry(kv.Key, kv.Value))
-                .ToArray();
+            AssertAll(GetArray(GetService().ConnectionStrings));
+        }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void AllConnectionStringsSelectNullOrEmptyTest(string selectProviderName)
+        {
+            AssertAll(GetByProviderName(selectProviderName));
+        }
+
+        private static void AssertAll(Entry[] allConnectionStrings)
+        {
             Assert.Equal(new Entry[] {
                 new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, "cosmos")),
                 new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
+                new Entry("COSmos14_cOSMOS", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom)),
+                new Entry("DataProtection", new ConnectionStringComplexInfo(custom: "Redis1")),
+                new Entry("DataProtection_Redis1", new ConnectionStringComplexInfo()),
                 new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
+                new Entry("Defaultconnection_aNY", new ConnectionStringInfo ("server=any1;database=default;")),
+                new Entry("defaultConnection_cOSmOS", new ConnectionStringInfo ("server=cosmos1;database=default;")),
                 new Entry("MySqL10", new ConnectionStringInfo("server=local10;", DbProviders.MySQL)),
                 new Entry("MySqL19", new ConnectionStringInfo("server=local19;", DbProviders.MySQL)),
                 new Entry("MYSql20", new ConnectionStringInfo("server=local20;", DbProviders.MySQL)),
@@ -246,6 +264,18 @@ namespace NetLah.Extensions.Configuration.Test
         }
 
         [Fact]
+        public void SelectCustomNameRedisTest()
+        {
+            var connectionStrings = GetByProviderName("Redis1");
+
+            Assert.Equal(new Entry[] {
+                new Entry("DataProtection", new ConnectionStringComplexInfo(custom: "Redis1")),
+            },
+            connectionStrings,
+            new EntryComparer());
+        }
+
+        [Fact]
         public void SelectCustomNameNotExistProviderTest()
         {
             var connectionStrings = GetByProviderName("NotExistProvider");
@@ -264,7 +294,12 @@ namespace NetLah.Extensions.Configuration.Test
             Assert.Equal(new Entry[] {
                 new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, "cosmos")),
                 new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
+                new Entry("COSmos14_cOSMOS", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom)),
+                new Entry("DataProtection", new ConnectionStringComplexInfo(custom: "Redis1")),
+                new Entry("DataProtection_Redis1", new ConnectionStringComplexInfo()),
                 new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
+                new Entry("Defaultconnection_aNY", new ConnectionStringInfo ("server=any1;database=default;")),
+                new Entry("defaultConnection_cOSmOS", new ConnectionStringInfo ("server=cosmos1;database=default;")),
                 new Entry("Redis", new ConnectionStringInfo(null, DbProviders.Custom)),
                 new Entry("UserProfile", new ConnectionStringInfo(null, DbProviders.Custom)),
             },
@@ -407,7 +442,8 @@ namespace NetLah.Extensions.Configuration.Test
                 if (x == null || y == null)
                     return x == null && y == null;
 
-                return string.Equals(x.Name, y.Name) &&
+                return x.GetType() == y.GetType() &&
+                    string.Equals(x.Name, y.Name) &&
                     x.ConnStr is ConnectionStringInfo a &&
                     y.ConnStr is ConnectionStringInfo b &&
                     string.Equals(a.ConnectionString, b.ConnectionString) &&

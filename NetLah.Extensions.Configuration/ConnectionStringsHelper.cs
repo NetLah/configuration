@@ -44,16 +44,21 @@ namespace NetLah.Extensions.Configuration
                 {
                     selectedProvider = select1;
                 }
-                else if (selectingProvider is string selectingProviderStr && !string.IsNullOrWhiteSpace(selectingProviderStr))
+                else if (selectingProvider is string selectingProviderStr)
                 {
-                    selectedProvider = DbProviders.Custom;
                     if (Enum.TryParse<DbProviders>(selectingProviderStr, ignoreCase: true, out var select2))
                     {
+                        selectedProvider = DbProviders.Custom;
                         selectedProvider = select2;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(selectingProviderStr))
+                    {
+                        selectedProvider = DbProviders.Custom;
+                        customTypeName = selectingProviderStr;
                     }
                     else
                     {
-                        customTypeName = selectingProviderStr;
+                        // empty string evaluate as select all
                     }
                 }
                 else
@@ -82,7 +87,12 @@ namespace NetLah.Extensions.Configuration
                     {
                         var connectionName = m.Groups["connectionName"].Value;
                         var providerName = m.Groups["providerName"].Value;
-                        Add(connectionName, providerName);
+                        var provider = Add(connectionName, providerName);
+
+                        if (provider == DbProviders.Custom)
+                        {
+                            Add(kv.key, null);
+                        }
                     }
                     else if (lookup.Remove($"{kv.key}_ProviderName", out var provider))   // parse Microsoft Azure style
                     {
@@ -93,7 +103,7 @@ namespace NetLah.Extensions.Configuration
                         Add(kv.key, null);
                     }
 
-                    void Add(string connectionName, string providerName)
+                    DbProviders Add(string connectionName, string providerName)
                     {
                         var (provider, customProviderName) = ParseProviderName(providerName);
 
@@ -109,6 +119,8 @@ namespace NetLah.Extensions.Configuration
 
                             conns.Add((connectionName, ConnectionStringComplexInfo.Create(kv.value, provider, customProviderName, kv.config)));
                         }
+
+                        return provider;
                     }
                 }
             }
