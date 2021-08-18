@@ -130,11 +130,15 @@ SQLServer
 Mssql
 SQLAzure
 System.Data.SqlClient
+Microsoft.Data.SqlClient
 
 MySQL
 MySql.Data.MySqlClient
+MySqlConnector
 
 PostgreSQL
+Npgsql
+Postgres
 ```
 
 ### Configuration appsettings.json or environment
