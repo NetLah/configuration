@@ -69,7 +69,7 @@ namespace NetLah.Extensions.Configuration
 
             var lookup = _configuration
                 .GetChildren()
-                .Select(c => (normalizedKey: c.Key.ToUpperInvariant(), key: c.Key, value: c.Value, config: c))
+                .Select(c => (normalizedKey: c.Key.ToUpperInvariant(), key: c.Key, value: c.Value))
                 .GroupBy(kv => kv.normalizedKey)
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
@@ -79,7 +79,7 @@ namespace NetLah.Extensions.Configuration
 
             foreach (var key1 in normalziedkeys)
             {
-                if (lookup.Remove(key1, out var kv))
+                if (lookup.Remove(key1, out var kv) && kv.value != null)
                 {
                     var m = NameAndProvider.Match(kv.key);
 
@@ -117,7 +117,7 @@ namespace NetLah.Extensions.Configuration
                                 customProviderName = customTypeName;
                             }
 
-                            conns.Add((connectionName, ConnectionStringComplexInfo.Create(kv.value, provider, customProviderName, kv.config)));
+                            conns.Add((connectionName, new ConnectionStringInfo(kv.value, provider, customProviderName)));
                         }
 
                         return provider;

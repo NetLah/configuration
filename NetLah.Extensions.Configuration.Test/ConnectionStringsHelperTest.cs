@@ -60,7 +60,6 @@ namespace NetLah.Extensions.Configuration.Test
             ["connectionstrings:PostgreSql23_providerName"] = "POSTGRES",
             ["connectionstrings:pOSTgreSQL24_postgres"] = "server=local24;",
             ["connectionstrings:Redis:configuration"] = "localhost:6379;",
-            ["connectionstrings:UserProfile:ConnectionString"] = "AccountEndpoint=https://7d48.documents.azure.com:443/;",
             ["connectionstrings:DataProtection_Redis1:configuration"] = "localhost:36379;",
         });
 
@@ -145,26 +144,7 @@ namespace NetLah.Extensions.Configuration.Test
                 Assert.Equal(expectedConnectionString, result.ConnectionString);
                 Assert.Equal(expectedProvider, result.Provider);
                 Assert.Equal(expectedCustom, result.Custom);
-                Assert.IsNotType<ConnectionStringComplexInfo>(result);
             }
-        }
-
-        [Theory]
-        [InlineData("Redis", "configuration", "localhost:6379;", null)]
-        [InlineData("userProfile", "ConnectionString", "AccountEndpoint=https://7d48.documents.azure.com:443/;", null)]
-        [InlineData("DataProtection", "configuration", "localhost:36379;", "Redis1")]
-        [InlineData("DataProtection_Redis1", "configuration", "localhost:36379;", null)]
-        public void GetConnectionComplexTest(string connectionName, string configKey, string expectedConfigValue, string expectedCustom)
-        {
-            ConnectionStringInfo conn = GetService()[connectionName];
-
-            var result = Assert.IsType<ConnectionStringComplexInfo>(conn);
-            Assert.Null(result.ConnectionString);
-            Assert.Equal(DbProviders.Custom, result.Provider);
-            Assert.Equal(expectedCustom, result.Custom);
-
-            Assert.NotNull(result.Configuration);
-            Assert.Equal(expectedConfigValue, result.Configuration[configKey]);
         }
 
         [Theory]
@@ -200,8 +180,6 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, "cosmos")),
                 new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
                 new Entry("COSmos14_cOSMOS", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom)),
-                new Entry("DataProtection", new ConnectionStringComplexInfo(custom: "Redis1")),
-                new Entry("DataProtection_Redis1", new ConnectionStringComplexInfo()),
                 new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
                 new Entry("Defaultconnection_aNY", new ConnectionStringInfo ("server=any1;database=default;")),
                 new Entry("defaultConnection_cOSmOS", new ConnectionStringInfo ("server=cosmos1;database=default;")),
@@ -216,7 +194,6 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("pOSTgreSQL22", new ConnectionStringInfo("server=local22;", DbProviders.PostgreSQL)),
                 new Entry("postGREsql23", new ConnectionStringInfo("server=local23;", DbProviders.PostgreSQL)),
                 new Entry("pOSTgreSQL24", new ConnectionStringInfo("server=local24;", DbProviders.PostgreSQL)),
-                new Entry("Redis", new ConnectionStringInfo(null, DbProviders.Custom)),
                 new Entry("Sqlserver15", new ConnectionStringInfo("server=local15;", DbProviders.SQLServer)),
                 new Entry("Sqlserver16", new ConnectionStringInfo("server=local16;", DbProviders.SQLServer)),
                 new Entry("SQLServer17", new ConnectionStringInfo("type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
@@ -227,7 +204,6 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("SQLServer5", new ConnectionStringInfo("type=System.Data.SqlClient;", DbProviders.SQLServer)),
                 new Entry("sqlSERVER6", new ConnectionStringInfo("server=local6;", DbProviders.SQLServer)),
                 new Entry("sqLServer7", new ConnectionStringInfo("server=local7;", DbProviders.SQLServer)),
-                new Entry("UserProfile", new ConnectionStringInfo(null, DbProviders.Custom)),
             },
             allConnectionStrings,
             new EntryComparer());
@@ -264,18 +240,6 @@ namespace NetLah.Extensions.Configuration.Test
         }
 
         [Fact]
-        public void SelectCustomNameRedisTest()
-        {
-            var connectionStrings = GetByProviderName("Redis1");
-
-            Assert.Equal(new Entry[] {
-                new Entry("DataProtection", new ConnectionStringComplexInfo(custom: "Redis1")),
-            },
-            connectionStrings,
-            new EntryComparer());
-        }
-
-        [Fact]
         public void SelectCustomNameNotExistProviderTest()
         {
             var connectionStrings = GetByProviderName("NotExistProvider");
@@ -295,13 +259,9 @@ namespace NetLah.Extensions.Configuration.Test
                 new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, "cosmos")),
                 new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
                 new Entry("COSmos14_cOSMOS", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom)),
-                new Entry("DataProtection", new ConnectionStringComplexInfo(custom: "Redis1")),
-                new Entry("DataProtection_Redis1", new ConnectionStringComplexInfo()),
                 new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
                 new Entry("Defaultconnection_aNY", new ConnectionStringInfo ("server=any1;database=default;")),
                 new Entry("defaultConnection_cOSmOS", new ConnectionStringInfo ("server=cosmos1;database=default;")),
-                new Entry("Redis", new ConnectionStringInfo(null, DbProviders.Custom)),
-                new Entry("UserProfile", new ConnectionStringInfo(null, DbProviders.Custom)),
             },
             connectionStrings,
             new EntryComparer());
