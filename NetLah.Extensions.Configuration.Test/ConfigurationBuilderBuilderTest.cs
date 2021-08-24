@@ -523,6 +523,14 @@ namespace NetLah.Extensions.Configuration
             AssertXml(configuration);
 
             var configuration2 = builder.WithClearAddedConfiguration().Build();
+
+            AssertProviders(configuration2, new[] {
+                "ChainedConfigurationProvider",
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+            });
+
             AssertProduction(configuration2);
             AssertIni(configuration2, false);
             AssertXml(configuration2, false);
