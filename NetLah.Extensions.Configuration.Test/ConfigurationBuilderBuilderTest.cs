@@ -539,7 +539,7 @@ namespace NetLah.Extensions.Configuration
         [Fact]
         public void Build_FullApi()
         {
-            var initConfig = new ConfigurationBuilder().Build();
+            var initConfig = new ConfigurationBuilder().AddXmlFile("appsettings.xml").Build();
 
             string[] args = null;
             var configuration = new ConfigurationBuilderBuilder()
@@ -565,8 +565,8 @@ namespace NetLah.Extensions.Configuration
             });
 
             AssertInMemrory(configuration);
-
             AssertIni(configuration);
+            AssertXml(configuration);
         }
     }
 }
