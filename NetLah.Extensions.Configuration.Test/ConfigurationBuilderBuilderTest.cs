@@ -8,7 +8,7 @@ namespace NetLah.Extensions.Configuration
 {
     public class ConfigurationBuilderBuilderTest
     {
-        private static string[] GetCommandLines() => new[] { "--CommandLineKey", "CommandLineValue1" };
+        private static string[] GetCommandLines() => new[] { "--CommandLineKey", "CommandLineValue1", "/arg2", "value2b", "--arg3=value3c", "/arg4=value4d", "--Key5:Sub6", "value7e" };
 
         private static IEnumerable<KeyValuePair<string, string>> GetInMemrory() => new Dictionary<string, string>
         {
@@ -41,6 +41,13 @@ namespace NetLah.Extensions.Configuration
         private static void AssertCommandLines(IConfiguration configuration)
         {
             Assert.Equal("CommandLineValue1", configuration["CommandLineKey"]);
+            Assert.Equal("value2b", configuration["arg2"]);
+            Assert.Equal("value3c", configuration["arg3"]);
+            Assert.Equal("value4d", configuration["arg4"]);
+            Assert.NotNull(configuration.GetSection("no-key"));
+            var section = configuration.GetSection("Key5");
+            Assert.Null(section.Value);
+            Assert.Equal("value7e", section["Sub6"]);
         }
 
         private static void AssertIni(IConfiguration configuration, bool success = true)
