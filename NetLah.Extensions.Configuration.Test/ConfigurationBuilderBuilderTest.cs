@@ -146,6 +146,7 @@ namespace NetLah.Extensions.Configuration
             });
 
             Assert.Equal("Development", builder.EnvironmentName);
+            AssertDevelopment(configuration);
         }
 
         [Fact]
