@@ -16,10 +16,8 @@ namespace NetLah.Extensions.Configuration
         private string _environmentName;
         private IConfigurationBuilder _configurationBuilder;
         private IConfiguration _hostConfig;
-
-        public ConfigurationBuilderBuilder()
-        {
-        }
+        private IConfiguration _configuration;
+        private IEnumerable<KeyValuePair<string, string>> _initialData;
 
         private IConfigurationBuilder ConfigureBuilder()
         {
@@ -40,6 +38,12 @@ namespace NetLah.Extensions.Configuration
             {
                 configBuilder.SetBasePath(_basePath);       // basePath cannot be null 
             }
+
+            if (_configuration is { } configuration)
+                configBuilder.AddConfiguration(configuration, shouldDisposeConfiguration: false);
+
+            if (_initialData is { } initialData)
+                configBuilder.AddInMemoryCollection(initialData);
 
             if (_hostConfig != null)
             {
@@ -82,19 +86,9 @@ namespace NetLah.Extensions.Configuration
 
         public IConfigurationRoot Build() => Builder.Build();
 
-        public ConfigurationBuilderBuilder WithBasePath(string basePath)
+        public ConfigurationBuilderBuilder WithAddConfiguration(Action<IConfigurationBuilder> addConfiguration)
         {
-            _basePath = basePath ?? throw new ArgumentNullException(nameof(basePath));
-            return ResetBuilder();
-        }
-
-        public ConfigurationBuilderBuilder WithCurrentDirectory() => WithBasePath(Directory.GetCurrentDirectory());
-
-        public ConfigurationBuilderBuilder WithBaseDirectory() => WithBasePath(AppDomain.CurrentDomain.BaseDirectory);
-
-        public ConfigurationBuilderBuilder WithCommandLines(string[] args)
-        {
-            _args = args;
+            _configureConfigActions.Add(addConfiguration);
             return ResetBuilder();
         }
 
@@ -106,15 +100,44 @@ namespace NetLah.Extensions.Configuration
 
         public ConfigurationBuilderBuilder WithAppSecrets<TStartup>() => WithAppSecrets(typeof(TStartup).Assembly);
 
+        public ConfigurationBuilderBuilder WithBasePath(string basePath)
+        {
+            _basePath = !string.IsNullOrWhiteSpace(basePath) ? Path.GetFullPath(basePath) : null;
+            return ResetBuilder();
+        }
+
+        public ConfigurationBuilderBuilder WithBaseDirectory() => WithBasePath(AppDomain.CurrentDomain.BaseDirectory);
+
+        public ConfigurationBuilderBuilder WithClearAddedConfiguration(bool clear = true)
+        {
+            if (clear)
+                _configureConfigActions.Clear();
+            return ResetBuilder();
+        }
+
+        public ConfigurationBuilderBuilder WithCommandLines(params string[] args)
+        {
+            _args = args;
+            return ResetBuilder();
+        }
+
+        public ConfigurationBuilderBuilder WithConfiguration(IConfiguration configuration)
+        {
+            _configuration = configuration;
+            return ResetBuilder();
+        }
+
+        public ConfigurationBuilderBuilder WithCurrentDirectory() => WithBasePath(Directory.GetCurrentDirectory());
+
         public ConfigurationBuilderBuilder WithEnvironment(string environmentName)
         {
             _environmentName = environmentName;
             return ResetBuilder();
         }
 
-        public ConfigurationBuilderBuilder WithAddConfiguration(Action<IConfigurationBuilder> addConfiguration)
+        public ConfigurationBuilderBuilder WithInMemory(IEnumerable<KeyValuePair<string, string>> initialData)
         {
-            _configureConfigActions.Add(addConfiguration);
+            _initialData = initialData;
             return ResetBuilder();
         }
 

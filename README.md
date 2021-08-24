@@ -26,14 +26,17 @@ public static void Main(string[] args)
 Full API support
 
 ```
+var initConfig = new ConfigurationBuilder().Build();
 IConfigurationRoot configuration = new ConfigurationBuilderBuilder()
+    .WithConfiguration(initConfig)
+    .WithInMemory(new Dictionary<string, string>{ ["Key:Sub"] = "Value" })
     .WithBasePath("C:/App/bin")
     .WithCurrentDirectory()
     .WithBaseDirectory()
     .WithAppSecrets<Program>()
     .WithAppSecrets(typeof(Program).Assembly)
-    .WithEnvironment("Staging")
     .WithAddConfiguration(cb => cb.AddIniFile("appsettings.ini", optional: true, reloadOnChange: true))
+    .WithEnvironment("Staging")
     .WithCommandLines(args)
     .Build();
 ```
@@ -49,12 +52,14 @@ https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/#default
 - Order of Precedence
 
 1. Host configuration from environment variables by prefix `DOTNET_` and `ASPNETCORE_`
-2. appsettings.json using the JSON configuration provider
-3. appsettings.EnvironmentName.json using the JSON configuration provider
-4. Other extra configuration sources
-5. App secrets when the app runs in the `Development` environment
-6. Environment variables using the Environment Variables configuration provider
-7. Command-line arguments using the Command-line configuration provider
+2. Chanined configuration (if any)
+3. In memory configuration (if any)
+4. appsettings.json using the JSON configuration provider
+5. appsettings.EnvironmentName.json using the JSON configuration provider
+6. Other extra configuration sources
+7. App secrets when the app runs in the `Development` environment
+8. Environment variables using the Environment Variables configuration provider
+9. Command-line arguments using the Command-line configuration provider
 
 ## BasePath of configuration files
 

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Content Include="appsettings.*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="New-Location\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
