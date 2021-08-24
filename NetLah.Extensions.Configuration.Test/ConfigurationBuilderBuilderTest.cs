@@ -127,6 +127,7 @@ namespace NetLah.Extensions.Configuration
             });
 
             Assert.Equal("Production", builder.EnvironmentName);
+            AssertProduction(configuration);
         }
 
         [Fact]
