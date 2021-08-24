@@ -26,24 +26,24 @@ namespace NetLah.Extensions.Configuration
                 .ToArray());
         }
 
-        private static void AssertProduction(IConfigurationRoot configuration)
+        private static void AssertProduction(IConfiguration configuration)
         {
             Assert.Equal("MainValue1", configuration["MainKey"]);
             Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         }
 
-        private static void AssertDevelopment(IConfigurationRoot configuration2)
+        private static void AssertDevelopment(IConfiguration configuration2)
         {
             Assert.Equal("MainValue1", configuration2["MainKey"]);
             Assert.Equal("EnvironmentDevelopmentValue1", configuration2["EnvironmentKey"]);
         }
 
-        private static void AssertCommandLines(IConfigurationRoot configuration)
+        private static void AssertCommandLines(IConfiguration configuration)
         {
             Assert.Equal("CommandLineValue1", configuration["CommandLineKey"]);
         }
 
-        private static void AssertIni(IConfigurationRoot configuration, bool success = true)
+        private static void AssertIni(IConfiguration configuration, bool success = true)
         {
             if (success)
             {
@@ -57,7 +57,7 @@ namespace NetLah.Extensions.Configuration
             }
         }
 
-        private static void AssertXml(IConfigurationRoot configuration, bool success = true)
+        private static void AssertXml(IConfiguration configuration, bool success = true)
         {
             if (success)
             {
@@ -71,7 +71,7 @@ namespace NetLah.Extensions.Configuration
             }
         }
 
-        private static void AssertInMemrory(IConfigurationRoot configuration)
+        private static void AssertInMemrory(IConfiguration configuration)
         {
             Assert.Equal("Value2", configuration["Key1"]);
             Assert.Equal("Value5", configuration["Key3:Sub4"]);
