@@ -142,6 +142,7 @@ namespace NetLah.Extensions.Configuration
             AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
             });
 
@@ -401,6 +402,7 @@ namespace NetLah.Extensions.Configuration
             AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
             });
@@ -417,6 +419,7 @@ namespace NetLah.Extensions.Configuration
                 .Build();
 
             AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
