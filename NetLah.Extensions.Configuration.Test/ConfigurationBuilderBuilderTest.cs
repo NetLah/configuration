@@ -258,9 +258,26 @@ namespace NetLah.Extensions.Configuration
         }
 
         [Fact]
-        public void WithCommandLines_Null_Helper()
+        public void WithCommandLines_Create_Null_Explicit()
         {
             var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(null)
+                .Build();
+
+            AssertProviders(configuration, new[] {
+                "ChainedConfigurationProvider",
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider"
+            });
+
+            AssertProduction(configuration);
+            Assert.Null(configuration["CommandLineKey"]);
+        }
+
+        [Fact]
+        public void WithCommandLines_Create_Null_Implicit()
+        {
+            var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
                 .Build();
 
             AssertProviders(configuration, new[] {
