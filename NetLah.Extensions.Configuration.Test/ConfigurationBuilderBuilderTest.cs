@@ -32,10 +32,10 @@ namespace NetLah.Extensions.Configuration
             Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         }
 
-        private static void AssertDevelopment(IConfiguration configuration2)
+        private static void AssertDevelopment(IConfiguration configuration)
         {
-            Assert.Equal("MainValue1", configuration2["MainKey"]);
-            Assert.Equal("EnvironmentDevelopmentValue1", configuration2["EnvironmentKey"]);
+            Assert.Equal("MainValue1", configuration["MainKey"]);
+            Assert.Equal("EnvironmentDevelopmentValue1", configuration["EnvironmentKey"]);
         }
 
         private static void AssertCommandLines(IConfiguration configuration)
