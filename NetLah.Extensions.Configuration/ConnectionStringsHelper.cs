@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
@@ -162,5 +164,14 @@ namespace NetLah.Extensions.Configuration
 
             return (provider, customProviderName);
         }
+
+        public static IConfiguration ToConfiguration(string connectionString)
+            => new ConfigurationBuilder()
+                .AddInMemoryCollection(new DbConnectionStringBuilder { ConnectionString = connectionString }
+                    .Cast<KeyValuePair<string, object>>()
+                    .ToDictionary(kv => kv.Key, kv => ConvertToString(kv.Value)))
+                .Build();
+
+        private static string ConvertToString(object value) => value == null ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
     }
 }
