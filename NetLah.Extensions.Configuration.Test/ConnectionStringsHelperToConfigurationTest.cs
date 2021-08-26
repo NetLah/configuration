@@ -108,7 +108,7 @@ namespace NetLah.Extensions.Configuration.Test
         }
 
         [Fact]
-        public void ConfigGetOhterTest()
+        public void ConfigGetOtherTest()
         {
             var service = GetService(" accountEndpoint = \"\" ; duration= 1.23:5 ; url = file:///C:/Temp/Document.pdf ");
 
@@ -118,7 +118,7 @@ namespace NetLah.Extensions.Configuration.Test
         }
 
         [Fact]
-        public void ConfigBinOhterTest()
+        public void ConfigBindOtherTest()
         {
             var service = GetService(" accountEndpoint = \"\" ; duration= 1.23:5 ; url = file:///C:/Temp/Document.pdf ");
 
