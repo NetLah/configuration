@@ -31,14 +31,14 @@ namespace NetLah.Extensions.Configuration.Test
             Assert.NotNull(ConfigBind<ServiceOptions>(service));
         }
 
-        private static void AssertParital1(ServiceOptions svcOptions)
+        private static void AssertPartial1(ServiceOptions svcOptions)
         {
             Assert.NotNull(svcOptions);
             Assert.Equal("https://7d48.documents.azure.com:443/", svcOptions.AccountEndpoint);
             Assert.Null(svcOptions.AccountKey);
         }
 
-        private static void AssertParital2(CustomCosmosOptions cosmosOptions)
+        private static void AssertPartial2(CustomCosmosOptions cosmosOptions)
         {
             Assert.NotNull(cosmosOptions);
             Assert.Equal(new Uri("https://7d48.documents.azure.com:443/"), cosmosOptions.AccountEndpoint);
@@ -49,16 +49,16 @@ namespace NetLah.Extensions.Configuration.Test
         public void ConfigGetPartialTest()
         {
             var service = GetService("accountEndpoint=https://7d48.documents.azure.com:443/;");
-            AssertParital1(service.Get<ServiceOptions>());
-            AssertParital2(service.Get<CustomCosmosOptions>());
+            AssertPartial1(service.Get<ServiceOptions>());
+            AssertPartial2(service.Get<CustomCosmosOptions>());
         }
 
         [Fact]
         public void ConfigBindPartialTest()
         {
             var service = GetService("accountEndpoint=https://7d48.documents.azure.com:443/;");
-            AssertParital1(ConfigBind<ServiceOptions>(service));
-            AssertParital2(ConfigBind<CustomCosmosOptions>(service));
+            AssertPartial1(ConfigBind<ServiceOptions>(service));
+            AssertPartial2(ConfigBind<CustomCosmosOptions>(service));
         }
 
         private static void AssertFull(IConfiguration service, ServiceOptions svcOptions)
