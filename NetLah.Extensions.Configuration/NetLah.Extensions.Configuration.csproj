@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <PackageId>NetLah.Extensions.Configuration</PackageId>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <PackageTags>appsettings;configuration;configuration-builder;connection-string;extensions;json;ini;xml;environments;command-line-arguments;args;dotnet;netcore;aspnetcore</PackageTags>
+    <TargetFrameworks>net6.0;net5.0;netstandard2.1</TargetFrameworks>
     <Description>Reusable classes to build application configuration with environmentName such as ConfigurationBuilderBuilder and CertificateLoader</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../NetLah.snk</AssemblyOriginatorKeyFile>
