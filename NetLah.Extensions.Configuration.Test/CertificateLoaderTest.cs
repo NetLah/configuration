@@ -16,8 +16,10 @@ namespace NetLah.Extensions.Configuration.Test
         [InlineData("development.dummy-rsa4096-2071June.pfx")]
         public void ConfigurationConvertTest(string filename)
         {
+            // Cannot use empty password on MacOS with netcoreapp3.1 and before, only supported custom loader since net5.0
+            // https://github.com/dotnet/runtime/issues/23635#issuecomment-334028941
             var filePath = Path.GetFullPath(Path.Combine("Properties", filename));
-            var certConfig = new CertificateConfig { Path = filePath };
+            var certConfig = new CertificateConfig { Path = filePath, Password = filename };
             var result = CertificateLoader.LoadCertificate(certConfig, "Test", requiredPrivateKey: true);
 
             Assert.NotNull(result);
