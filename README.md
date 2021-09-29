@@ -163,8 +163,8 @@ Postgres
 
 ```
 IConfiguration configuration;
-var connStrsManager = new ConnectionStringManager(configuration);
-var conn = connStrsManager["defaultConnection"];
+var connStrManager = new ConnectionStringManager(configuration);
+var conn = connStrManager["defaultConnection"];
 if (conn != null) {
     if (conn.Provider == DbProviders.PostgreSQL) {
         ...
@@ -181,8 +181,7 @@ if (conn != null) {
 ### Multi connectionNames:
 
 ```
-var connStrsManager = new ConnectionStringManager(configuration);
-var conn = connStrsManager["BlogConnection", "BlogConnection2"];
+var conn = connStrManager["BlogConnection", "BlogConnection2"];
 if (conn != null) {
     if (conn.Provider == DbProviders.Custom && conn.Custom == "Cosmos1") {
         ...
