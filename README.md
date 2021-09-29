@@ -1,6 +1,6 @@
 # NetLah.Extensions.Configuration - .NET Library
 
-[NetLah.Extensions.Configuration](https://www.nuget.org/packages/NetLah.Extensions.Configuration/) is a library which contains a set of reusable classes for build configuration with environment. These library classes are `ConfigurationBuilderBuilder`, `CertificateLoader` and `ConnectionStringsHelper`.
+[NetLah.Extensions.Configuration](https://www.nuget.org/packages/NetLah.Extensions.Configuration/) is a library which contains a set of reusable classes for build configuration with environment. These library classes are `ConfigurationBuilderBuilder`, `CertificateLoader` and `ConnectionStringManager`.
 
 ## Nuget package
 
@@ -112,7 +112,7 @@ var configuration = ConfigurationBuilderBuilder.Create<Program>()
     .Build();
 ```
 
-## Helper parse connectionStrings from Configuratin with database provider information
+## ConnectionStringManager load from Configuration with database provider information
 
 Reference at https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?#connection-string-prefixes
 
@@ -153,17 +153,18 @@ Postgres
     "DefaultConnection": "Server=localhost;Database=dbname;Integrated Security=True;",
     "DefaultConnection_ProviderName": "System.Data.SqlClient",
     "BlogConnection": "AccountEndpoint=https://7d48.documents.azure.com:443/;",
-    "BlogConnection_ProviderName": "Cosmos1"
+    "BlogConnection_ProviderName": "Cosmos1",
+    "BlogConnection2_Cosmos": "AccountEndpoint=https://7d48.documents.azure.com:443/;"
 }
 
 ```
 
-### Usage:
+### Basic usage:
 
 ```
 IConfiguration configuration;
-var connStrsHelper = new ConnectionStringsHelper(configuration);
-var conn = connStrsHelper["defaultConnection"];
+var connStrsManager = new ConnectionStringManager(configuration);
+var conn = connStrsManager["defaultConnection"];
 if (conn != null) {
     if (conn.Provider == DbProviders.PostgreSQL) {
         ...
@@ -172,6 +173,20 @@ if (conn != null) {
     } else if (conn.Provider == DbProviders.SQLServer) {
         ...
     } else if (conn.Provider == DbProviders.Custom && conn.Custom == "Cosmos1") {
+        ...
+    }
+}
+```
+
+### Multi connectionNames:
+
+```
+var connStrsManager = new ConnectionStringManager(configuration);
+var conn = connStrsManager["BlogConnection", "BlogConnection2"];
+if (conn != null) {
+    if (conn.Provider == DbProviders.Custom && conn.Custom == "Cosmos1") {
+        ...
+    } else if (conn.Provider == DbProviders.Custom && conn.Custom == "Cosmos") {
         ...
     }
 }
