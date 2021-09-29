@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace NetLah.Extensions.Configuration.Test
 {
-    public class ConnectionStringsHelperTest
+    public class ConnectionStringManagerIntegrationTest
     {
         private static IConfigurationRoot NewConfiguration(IEnumerable<KeyValuePair<string, string>> initialData = null)
         {
@@ -59,33 +58,64 @@ namespace NetLah.Extensions.Configuration.Test
             ["connectionstrings:postGREsql23"] = "server=local23;",
             ["connectionstrings:PostgreSql23_providerName"] = "POSTGRES",
             ["connectionstrings:pOSTgreSQL24_postgres"] = "server=local24;",
-            ["connectionstrings:Redis:configuration"] = "localhost:6379;",
-            ["connectionstrings:DataProtection_Redis1:configuration"] = "localhost:36379;",
+            ["connectionstrings:Redis:configuration"] = "localhost:6379;",      // no more support complex type
+            ["connectionstrings:DataProtection_Redis1:configuration"] = "localhost:36379;", // no more support complex type
         });
 
-        private static ConnectionStringsHelper GetService() => new(GetConfiguration());
+        private static IConnectionStringManager GetService() => GetService(GetConfiguration());
+        private static IConnectionStringManager GetService(IConfiguration configuration) => new ConnectionStringManager(configuration);
 
         private static Entry[] GetByProviderName(string selectProviderName) => GetByProviderObject(selectProviderName);
 
         private static Entry[] GetByProviderObject(object selectedProvider)
-            => GetArray(GetService().ParseConnectionStrings(selectedProvider));
+            => GetArray(((ConnectionStringManager)GetService()).CloneWithProvider(selectedProvider).ConnectionStrings);
 
-        private static Entry[] GetArray(IEnumerable<KeyValuePair<string, ConnectionStringInfo>> keyValues)
+        private static Entry[] GetArray(IEnumerable<KeyValuePair<string, ProviderConnectionString>> keyValues)
             => keyValues
                 .OrderBy(kv => kv.Key)
                 .Select(kv => new Entry(kv.Key, kv.Value))
                 .ToArray();
 
         [Fact]
+        public void BasicExpandTest()
+        {
+            var configBuilder = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    ["a"] = "$$1 ${eee} $[Bb] 2 $( cCc ) %{ffff} ${BB} %%3 %{ DD DD }",
+                    ["bb"] = "BBbbBB",
+                    ["ccc"] = "CCCC(%(bB)-4-%[dD dd ])",
+                    [" dd dd  "] = "<<DD>>",
+                });
+            var config = configBuilder.Build();
+            var manager = new ConnectionStringManager(config, "");
+            var dict = manager.ConnectionStrings;
+
+            Assert.NotNull(dict);
+            var a = dict["A"];
+            Assert.Equal("$1 ${eee} BBbbBB 2 CCCC(BBbbBB-4-<<DD>>) %{ffff} BBbbBB %3 <<DD>>", a.Value);
+            Assert.Equal("$$1 ${eee} $[Bb] 2 $( cCc ) %{ffff} ${BB} %%3 %{ DD DD }", a.Raw);
+            var b = dict["BB"];
+            Assert.Equal("BBbbBB", b.Value);
+            Assert.Equal("BBbbBB", b.Raw);
+            var c = dict["CCC"];
+            Assert.Equal("CCCC(BBbbBB-4-<<DD>>)", c.Value);
+            Assert.Equal("CCCC(%(bB)-4-%[dD dd ])", c.Raw);
+            var d = dict["dd dd"];
+            Assert.Equal("<<DD>>", d.Value);
+            Assert.Equal("<<DD>>", d.Raw);
+        }
+
+        [Fact]
         public void IndexerGetDefaultConnectionTest()
         {
             var config = NewConfiguration(new Dictionary<string, string> { ["connectionStrings:defaultConnection"] = "defaultConnection1;" });
-            var connectionStringsHelper = new ConnectionStringsHelper(config);
+            var connectionStringManager = GetService(config);
 
-            ConnectionStringInfo result = connectionStringsHelper["DefaultConnection"];
+            ProviderConnectionString result = connectionStringManager["DefaultConnection"];
 
             Assert.NotNull(result);
-            Assert.Equal("defaultConnection1;", result.ConnectionString);
+            Assert.Equal("defaultConnection1;", result.Value);
             Assert.Equal(DbProviders.Custom, result.Provider);
             Assert.Null(result.Custom);
         }
@@ -101,7 +131,7 @@ namespace NetLah.Extensions.Configuration.Test
         [Fact]
         public void NullConfigTest()
         {
-            Assert.ThrowsAny<ArgumentException>(() => new ConnectionStringsHelper(null));
+            Assert.ThrowsAny<ArgumentException>(() => GetService(null));
         }
 
         [Theory]
@@ -132,7 +162,7 @@ namespace NetLah.Extensions.Configuration.Test
         [InlineData("NoExist", null, DbProviders.Custom, null)]
         public void GetConnectionTest(string connectionName, string expectedConnectionString, DbProviders expectedProvider, string expectedCustom)
         {
-            ConnectionStringInfo result = GetService()[connectionName];
+            ProviderConnectionString result = GetService()[connectionName];
 
             if (expectedConnectionString == null)
             {
@@ -141,23 +171,210 @@ namespace NetLah.Extensions.Configuration.Test
             else
             {
                 Assert.NotNull(result);
-                Assert.Equal(expectedConnectionString, result.ConnectionString);
+                Assert.Equal(expectedConnectionString, result.Value);
                 Assert.Equal(expectedProvider, result.Provider);
                 Assert.Equal(expectedCustom, result.Custom);
             }
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("      ")]
-        public void GetNullConnectionNameTest(string connectionName)
+        [InlineData(null, null)]
+        [InlineData("defaultConnection1;", "   default  Connection   ")]
+        [InlineData("empty3;", "")]
+        [InlineData("empty3;", "   ")]
+        public void GetNullEmptyOrSpaceConnectionNameKeyTrimTest(string expected, string connectionName)
         {
-            var connectionStringsHelper = GetService();
+            var config = NewConfiguration(new Dictionary<string, string>
+            {
+                ["emptyOrSpace: default  Connection "] = "defaultConnection1;",
+                ["emptyOrSpace:"] = "empty3;",
+                ["emptyOrSpace: "] = "oneSpace4;"
+            });
+            var connectionStringManager = new ConnectionStringManager(config, "emptyOrSpace");
 
-            var result = Assert.ThrowsAny<ArgumentException>(() => connectionStringsHelper[connectionName]);
+            var result = connectionStringManager[connectionName];
 
-            Assert.Equal("connectionName is required", result.Message);
+            if (expected == null)
+            {
+                Assert.Null(result);
+            }
+            else
+            {
+                Assert.NotNull(result);
+                Assert.Equal(expected, result.Value);
+                Assert.Equal(expected, result.Raw);
+            }
+        }
+
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData("defaultConnection1;", "default  Connection")]
+        [InlineData("empty3;", "")]
+        [InlineData("oneSpace4;", " ")]
+        [InlineData("twoSpace5;", "  ")]
+        [InlineData(null, "   ")]
+        public void GetNullEmptyOrSpaceConnectionName_WithKeyPreserveSpace_Test(string expected, string connectionName)
+        {
+            var config = NewConfiguration(new Dictionary<string, string>
+            {
+                ["emptyOrSpace:default  Connection"] = "defaultConnection1;",
+                ["emptyOrSpace:"] = "empty3;",
+                ["emptyOrSpace: "] = "oneSpace4;",
+                ["emptyOrSpace:  "] = "twoSpace5;",
+            });
+            var original = new ConnectionStringManager(config, "emptyOrSpace");
+            var connectionStringManager = original.CloneWithKeyPreserveSpace();
+
+            Assert.NotSame(original.Root, ((ConnectionStringManager)connectionStringManager).Root);
+            Assert.Same(((ConnectionStringManager)connectionStringManager).Root, ((ConnectionStringManager)connectionStringManager.CloneWithKeyPreserveSpace()).Root);
+
+            var result = connectionStringManager[connectionName];
+
+            if (expected == null)
+            {
+                Assert.Null(result);
+            }
+            else
+            {
+                Assert.NotNull(result);
+                Assert.Equal(expected, result.Value);
+                Assert.Equal(expected, result.Raw);
+            }
+        }
+
+        [Theory]
+        [InlineData("connectionStrings")]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("any:other")]
+        public void SectionNameTest(string sectionName)
+        {
+            var sectionNameColon = string.IsNullOrWhiteSpace(sectionName) ? sectionName : sectionName + ":";
+            var config = NewConfiguration(new Dictionary<string, string> { [$"{sectionNameColon}defaultConnection"] = "defaultConnection1;" });
+            var connectionStringManager = new ConnectionStringManager(config, sectionName);
+
+            var result = connectionStringManager["defaultConnection"];
+
+            Assert.NotNull(result);
+            Assert.Equal("defaultConnection1;", result.Value);
+            Assert.Equal("defaultConnection1;", result.Raw);
+        }
+
+        [Theory]
+        [InlineData(null, "not-exist")]
+        [InlineData("oneSpace3;", "")]
+        [InlineData(null, null)]
+        [InlineData("defaultConnection1;", "defaultConnection")]
+        [InlineData("defaultConnection1;", null, "not-exist", "defaultConnection")]
+        [InlineData("cosmos2;", null, "not-exist", "cosmos", "defaultConnection")]
+        [InlineData("defaultConnection1;", null, "not-exist", "defaultConnection", "cosmos")]
+        [InlineData("oneSpace3;", null, "not-exist", " ", "defaultConnection")]
+        public void MultiConnectionNamesTest_WithKeyTrim(string expected, string connectionName, params string[] connectionNames)
+        {
+            var config = NewConfiguration(new Dictionary<string, string>
+            {
+                ["section:defaultConnection"] = "defaultConnection1;",
+                ["section:cosmos"] = "cosmos2;",
+                ["section: "] = "oneSpace3;",
+            });
+            var connectionStringManager = new ConnectionStringManager(config, "section");
+
+            var result = connectionStringManager[connectionName, connectionNames];
+
+            if (expected == null)
+            {
+                Assert.Null(result);
+            }
+            else
+            {
+                Assert.NotNull(result);
+                Assert.Equal(expected, result.Value);
+                Assert.Equal(expected, result.Raw);
+            }
+        }
+
+        [Theory]
+        [InlineData(null, "not-exist")]
+        [InlineData(null, "")]
+        [InlineData(null, null)]
+        [InlineData("defaultConnection1;", "defaultConnection")]
+        [InlineData("defaultConnection1;", null, "", null, "not-exist", "defaultConnection")]
+        [InlineData("cosmos2;", null, "", null, "not-exist", "cosmos", "defaultConnection")]
+        [InlineData("defaultConnection1;", null, "", null, "not-exist", "defaultConnection", "cosmos")]
+        [InlineData("oneSpace3;", null, "", null, "not-exist", " ", "defaultConnection", "cosmos")]
+        public void MultiConnectionNamesTest_WithKeyPreserveSpace(string expected, string connectionName, params string[] connectionNames)
+        {
+            var config = NewConfiguration(new Dictionary<string, string>
+            {
+                ["section:defaultConnection"] = "defaultConnection1;",
+                ["section:cosmos"] = "cosmos2;",
+                ["section: "] = "oneSpace3;",
+            });
+
+            var original = new ConnectionStringManager(config, "section");
+            var connectionStringManager = original.CloneWithKeyPreserveSpace();
+
+            Assert.NotSame(original.Root, ((ConnectionStringManager)connectionStringManager).Root);
+            Assert.Same(((ConnectionStringManager)connectionStringManager).Root, ((ConnectionStringManager)connectionStringManager.CloneWithKeyPreserveSpace()).Root);
+
+            var result = connectionStringManager[connectionName, connectionNames];
+
+            if (expected == null)
+            {
+                Assert.Null(result);
+            }
+            else
+            {
+                Assert.NotNull(result);
+                Assert.Equal(expected, result.Value);
+                Assert.Equal(expected, result.Raw);
+            }
+        }
+
+        [Fact]
+        public void WithProviderTest()
+        {
+            var config = NewConfiguration(new Dictionary<string, string>
+            {
+                ["default"] = "defaultConnection1;",
+                ["dEfault_sqlserver"] = "defaultSqlServer2;",
+                ["deFault_postgresql"] = "defaultPostgreSQL3;",
+                ["defAult_cosmos"] = "defaultCosmos5;",
+            });
+
+            var service = new ConnectionStringManager(config, "");
+            Assert.NotEmpty(service.ConnectionStrings);
+            var connStr1 = service["Default"];
+            Assert.NotNull(connStr1);
+            Assert.Equal("default", connStr1.Name);
+            Assert.Equal("defaultConnection1;", connStr1.Value);
+            Assert.NotEmpty(service.ConnectionStrings);
+
+            var service2 = service.CloneWithProvider(DbProviders.SQLServer);
+            var connStr2 = service2["Default"];
+            Assert.NotNull(connStr2);
+            Assert.Equal("dEfault", connStr2.Name);
+            Assert.Equal("defaultSqlServer2;", connStr2.Value);
+            Assert.NotEmpty(service2.ConnectionStrings);
+
+            var service3 = service.CloneWithProvider(DbProviders.PostgreSQL);
+            var connStr3 = service3["Default"];
+            Assert.NotNull(connStr3);
+            Assert.Equal("deFault", connStr3.Name);
+            Assert.Equal("defaultPostgreSQL3;", connStr3.Value);
+            Assert.NotEmpty(service3.ConnectionStrings);
+
+            var service4 = service.CloneWithProvider(DbProviders.MySQL);
+            var connStr4 = service4["Default"];
+            Assert.Null(connStr4);
+            Assert.Empty(service4.ConnectionStrings);
+
+            var service5 = service.CloneWithProvider("Cosmos");
+            var connStr5 = service5["Default"];
+            Assert.NotNull(connStr5);
+            Assert.Equal("defAult", connStr5.Name);
+            Assert.Equal("defaultCosmos5;", connStr5.Value);
+            Assert.NotEmpty(service5.ConnectionStrings);
         }
 
         [Fact]
@@ -177,36 +394,36 @@ namespace NetLah.Extensions.Configuration.Test
         private static void AssertAll(Entry[] allConnectionStrings)
         {
             Assert.Equal(new Entry[] {
-                new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, "cosmos")),
-                new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
-                new Entry("COSmos14_cOSMOS", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom)),
-                new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
-                new Entry("Defaultconnection_aNY", new ConnectionStringInfo ("server=any1;database=default;")),
-                new Entry("defaultConnection_cOSmOS", new ConnectionStringInfo ("server=cosmos1;database=default;")),
-                new Entry("MySqL10", new ConnectionStringInfo("server=local10;", DbProviders.MySQL)),
-                new Entry("MySqL19", new ConnectionStringInfo("server=local19;", DbProviders.MySQL)),
-                new Entry("MYSql20", new ConnectionStringInfo("server=local20;", DbProviders.MySQL)),
-                new Entry("MysQL8", new ConnectionStringInfo("server=local8;", DbProviders.MySQL)),
-                new Entry("MySqL9", new ConnectionStringInfo("server=local9;", DbProviders.MySQL)),
-                new Entry("postGREsql11", new ConnectionStringInfo("server=local11;", DbProviders.PostgreSQL)),
-                new Entry("pOSTgreSQL12", new ConnectionStringInfo("server=local12;", DbProviders.PostgreSQL)),
-                new Entry("postGREsql21", new ConnectionStringInfo("server=local21;", DbProviders.PostgreSQL)),
-                new Entry("pOSTgreSQL22", new ConnectionStringInfo("server=local22;", DbProviders.PostgreSQL)),
-                new Entry("postGREsql23", new ConnectionStringInfo("server=local23;", DbProviders.PostgreSQL)),
-                new Entry("pOSTgreSQL24", new ConnectionStringInfo("server=local24;", DbProviders.PostgreSQL)),
-                new Entry("Sqlserver15", new ConnectionStringInfo("server=local15;", DbProviders.SQLServer)),
-                new Entry("Sqlserver16", new ConnectionStringInfo("server=local16;", DbProviders.SQLServer)),
-                new Entry("SQLServer17", new ConnectionStringInfo("type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
-                new Entry("SQLServer18", new ConnectionStringInfo("type=Microsoft.Data.SqlClient18;", DbProviders.SQLServer)),
-                new Entry("sqlserver2", new ConnectionStringInfo("type=sqlserver;", DbProviders.SQLServer)),
-                new Entry("sqLServer3", new ConnectionStringInfo("type=MSSQL;", DbProviders.SQLServer)),
-                new Entry("sqLSErver4", new ConnectionStringInfo("type=SQLAzure;", DbProviders.SQLServer)),
-                new Entry("SQLServer5", new ConnectionStringInfo("type=System.Data.SqlClient;", DbProviders.SQLServer)),
-                new Entry("sqlSERVER6", new ConnectionStringInfo("server=local6;", DbProviders.SQLServer)),
-                new Entry("sqLServer7", new ConnectionStringInfo("server=local7;", DbProviders.SQLServer)),
+                new Entry("cosmos13", new ProviderConnectionString ("cosmos13", "server=cosmos13;", DbProviders.Custom, "cosmos")),
+                new Entry("COSmos14", new ProviderConnectionString ("COSmos14", "server=cosmos14;", DbProviders.Custom, "cOSMOS")),
+                new Entry("COSmos14_cOSMOS", new ProviderConnectionString ("COSmos14_cOSMOS", "server=cosmos14;", DbProviders.Custom)),
+                new Entry("defaultConnection", new ProviderConnectionString ("defaultConnection", "defaultConnection1;")),
+                new Entry("Defaultconnection_aNY", new ProviderConnectionString ("Defaultconnection_aNY", "server=any1;database=default;")),
+                new Entry("defaultConnection_cOSmOS", new ProviderConnectionString ("defaultConnection_cOSmOS", "server=cosmos1;database=default;")),
+                new Entry("MySqL10", new ProviderConnectionString("MySqL10", "server=local10;", DbProviders.MySQL)),
+                new Entry("MySqL19", new ProviderConnectionString("MySqL19", "server=local19;", DbProviders.MySQL)),
+                new Entry("MYSql20", new ProviderConnectionString("MYSql20", "server=local20;", DbProviders.MySQL)),
+                new Entry("MysQL8", new ProviderConnectionString("MysQL8", "server=local8;", DbProviders.MySQL)),
+                new Entry("MySqL9", new ProviderConnectionString("MySqL9", "server=local9;", DbProviders.MySQL)),
+                new Entry("postGREsql11", new ProviderConnectionString("postGREsql11", "server=local11;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL12", new ProviderConnectionString("pOSTgreSQL12", "server=local12;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql21", new ProviderConnectionString("postGREsql21", "server=local21;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL22", new ProviderConnectionString("pOSTgreSQL22", "server=local22;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql23", new ProviderConnectionString("postGREsql23", "server=local23;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL24", new ProviderConnectionString("pOSTgreSQL24", "server=local24;", DbProviders.PostgreSQL)),
+                new Entry("Sqlserver15", new ProviderConnectionString("Sqlserver15", "server=local15;", DbProviders.SQLServer)),
+                new Entry("Sqlserver16", new ProviderConnectionString("Sqlserver16", "server=local16;", DbProviders.SQLServer)),
+                new Entry("SQLServer17", new ProviderConnectionString("SQLServer17", "type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
+                new Entry("SQLServer18", new ProviderConnectionString("SQLServer18", "type=Microsoft.Data.SqlClient18;", DbProviders.SQLServer)),
+                new Entry("sqlserver2", new ProviderConnectionString("sqlserver2", "type=sqlserver;", DbProviders.SQLServer)),
+                new Entry("sqLServer3", new ProviderConnectionString("sqLServer3", "type=MSSQL;", DbProviders.SQLServer)),
+                new Entry("sqLSErver4", new ProviderConnectionString("sqLSErver4", "type=SQLAzure;", DbProviders.SQLServer)),
+                new Entry("SQLServer5", new ProviderConnectionString("SQLServer5", "type=System.Data.SqlClient;", DbProviders.SQLServer)),
+                new Entry("sqlSERVER6", new ProviderConnectionString("sqlSERVER6", "server=local6;", DbProviders.SQLServer)),
+                new Entry("sqLServer7", new ProviderConnectionString("sqLServer7", "server=local7;", DbProviders.SQLServer)),
             },
             allConnectionStrings,
-            new EntryComparer());
+            EntryComparer.Instance);
         }
 
         [Theory]
@@ -217,12 +434,12 @@ namespace NetLah.Extensions.Configuration.Test
             var connectionStrings = GetByProviderName(selectProviderName);
 
             Assert.Equal(new Entry[] {
-                new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, selectProviderName)),
-                new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, selectProviderName)),
-                new Entry("defaultConnection", new ConnectionStringInfo ("server=cosmos1;database=default;", DbProviders.Custom,selectProviderName)),
+                new Entry("cosmos13", new ProviderConnectionString ("cosmos13", "server=cosmos13;", DbProviders.Custom, selectProviderName)),
+                new Entry("COSmos14", new ProviderConnectionString ("COSmos14", "server=cosmos14;", DbProviders.Custom, selectProviderName)),
+                new Entry("defaultConnection", new ProviderConnectionString ("defaultConnection", "server=cosmos1;database=default;", DbProviders.Custom,selectProviderName)),
             },
             connectionStrings,
-            new EntryComparer());
+            EntryComparer.Instance);
         }
 
         [Theory]
@@ -233,10 +450,10 @@ namespace NetLah.Extensions.Configuration.Test
             var connectionStrings = GetByProviderName(selectProviderName);
 
             Assert.Equal(new Entry[] {
-                new Entry("Defaultconnection", new ConnectionStringInfo("server=any1;database=default;", DbProviders.Custom, selectProviderName)),
+                new Entry("Defaultconnection", new ProviderConnectionString("Defaultconnection", "server=any1;database=default;", DbProviders.Custom, selectProviderName)),
             },
             connectionStrings,
-            new EntryComparer());
+            EntryComparer.Instance);
         }
 
         [Fact]
@@ -256,15 +473,15 @@ namespace NetLah.Extensions.Configuration.Test
             var connectionStrings = GetByProviderObject(selectedProvider);
 
             Assert.Equal(new Entry[] {
-                new Entry("cosmos13", new ConnectionStringInfo ("server=cosmos13;", DbProviders.Custom, "cosmos")),
-                new Entry("COSmos14", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom, "cOSMOS")),
-                new Entry("COSmos14_cOSMOS", new ConnectionStringInfo ("server=cosmos14;", DbProviders.Custom)),
-                new Entry("defaultConnection", new ConnectionStringInfo ("defaultConnection1;")),
-                new Entry("Defaultconnection_aNY", new ConnectionStringInfo ("server=any1;database=default;")),
-                new Entry("defaultConnection_cOSmOS", new ConnectionStringInfo ("server=cosmos1;database=default;")),
+                new Entry("cosmos13", new ProviderConnectionString ("cosmos13", "server=cosmos13;", DbProviders.Custom, "cosmos")),
+                new Entry("COSmos14", new ProviderConnectionString ("COSmos14", "server=cosmos14;", DbProviders.Custom, "cOSMOS")),
+                new Entry("COSmos14_cOSMOS", new ProviderConnectionString ("COSmos14_cOSMOS", "server=cosmos14;", DbProviders.Custom)),
+                new Entry("defaultConnection", new ProviderConnectionString ("defaultConnection", "defaultConnection1;")),
+                new Entry("Defaultconnection_aNY", new ProviderConnectionString ("Defaultconnection_aNY", "server=any1;database=default;")),
+                new Entry("defaultConnection_cOSmOS", new ProviderConnectionString ("defaultConnection_cOSmOS","server=cosmos1;database=default;")),
             },
             connectionStrings,
-            new EntryComparer());
+            EntryComparer.Instance);
         }
 
         [Theory]
@@ -275,15 +492,15 @@ namespace NetLah.Extensions.Configuration.Test
             var connectionStrings = GetByProviderObject(selectedProvider);
 
             Assert.Equal(new Entry[] {
-                new Entry("defaultConnection", new ConnectionStringInfo ("server=mysqL1;database=default;", DbProviders.MySQL)),
-                new Entry("MySqL10", new ConnectionStringInfo("server=local10;", DbProviders.MySQL)),
-                new Entry("MySqL19", new ConnectionStringInfo("server=local19;", DbProviders.MySQL)),
-                new Entry("MYSql20", new ConnectionStringInfo("server=local20;", DbProviders.MySQL)),
-                new Entry("MysQL8", new ConnectionStringInfo("server=local8;", DbProviders.MySQL)),
-                new Entry("MySqL9", new ConnectionStringInfo("server=local9;", DbProviders.MySQL)),
+                new Entry("defaultConnection", new ProviderConnectionString ("defaultConnection", "server=mysqL1;database=default;", DbProviders.MySQL)),
+                new Entry("MySqL10", new ProviderConnectionString("MySqL10", "server=local10;", DbProviders.MySQL)),
+                new Entry("MySqL19", new ProviderConnectionString("MySqL19", "server=local19;", DbProviders.MySQL)),
+                new Entry("MYSql20", new ProviderConnectionString("MYSql20", "server=local20;", DbProviders.MySQL)),
+                new Entry("MysQL8", new ProviderConnectionString("MysQL8", "server=local8;", DbProviders.MySQL)),
+                new Entry("MySqL9", new ProviderConnectionString("MySqL9", "server=local9;", DbProviders.MySQL)),
             },
             connectionStrings,
-            new EntryComparer());
+            EntryComparer.Instance);
         }
 
         [Theory]
@@ -294,16 +511,16 @@ namespace NetLah.Extensions.Configuration.Test
             var connectionStrings = GetByProviderObject(selectedProvider);
 
             Assert.Equal(new Entry[] {
-                new Entry("defaultConnection", new ConnectionStringInfo ("server=postgresql1;database=default;", DbProviders.PostgreSQL)),
-                new Entry("postGREsql11", new ConnectionStringInfo("server=local11;", DbProviders.PostgreSQL)),
-                new Entry("pOSTgreSQL12", new ConnectionStringInfo("server=local12;", DbProviders.PostgreSQL)),
-                new Entry("postGREsql21", new ConnectionStringInfo("server=local21;", DbProviders.PostgreSQL)),
-                new Entry("pOSTgreSQL22", new ConnectionStringInfo("server=local22;", DbProviders.PostgreSQL)),
-                new Entry("postGREsql23", new ConnectionStringInfo("server=local23;", DbProviders.PostgreSQL)),
-                new Entry("pOSTgreSQL24", new ConnectionStringInfo("server=local24;", DbProviders.PostgreSQL)),
+                new Entry("defaultConnection", new ProviderConnectionString ("defaultConnection", "server=postgresql1;database=default;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql11", new ProviderConnectionString("postGREsql11", "server=local11;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL12", new ProviderConnectionString("pOSTgreSQL12", "server=local12;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql21", new ProviderConnectionString("postGREsql21", "server=local21;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL22", new ProviderConnectionString("pOSTgreSQL22", "server=local22;", DbProviders.PostgreSQL)),
+                new Entry("postGREsql23", new ProviderConnectionString("postGREsql23", "server=local23;", DbProviders.PostgreSQL)),
+                new Entry("pOSTgreSQL24", new ProviderConnectionString("pOSTgreSQL24", "server=local24;", DbProviders.PostgreSQL)),
             },
             connectionStrings,
-            new EntryComparer());
+            EntryComparer.Instance);
         }
 
         [Theory]
@@ -314,28 +531,28 @@ namespace NetLah.Extensions.Configuration.Test
             var connectionStrings = GetByProviderObject(selectedProvider);
 
             Assert.Equal(new Entry[] {
-                new Entry("defaultConnection", new ConnectionStringInfo ("server=sqlserver1;database=default;", DbProviders.SQLServer)),
-                new Entry("Sqlserver15", new ConnectionStringInfo("server=local15;", DbProviders.SQLServer)),
-                new Entry("Sqlserver16", new ConnectionStringInfo("server=local16;", DbProviders.SQLServer)),
-                new Entry("SQLServer17", new ConnectionStringInfo("type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
-                new Entry("SQLServer18", new ConnectionStringInfo("type=Microsoft.Data.SqlClient18;", DbProviders.SQLServer)),
-                new Entry("sqlserver2", new ConnectionStringInfo("type=sqlserver;", DbProviders.SQLServer)),
-                new Entry("sqLServer3", new ConnectionStringInfo("type=MSSQL;", DbProviders.SQLServer)),
-                new Entry("sqLSErver4", new ConnectionStringInfo("type=SQLAzure;", DbProviders.SQLServer)),
-                new Entry("SQLServer5", new ConnectionStringInfo("type=System.Data.SqlClient;", DbProviders.SQLServer)),
-                new Entry("sqlSERVER6", new ConnectionStringInfo("server=local6;", DbProviders.SQLServer)),
-                new Entry("sqLServer7", new ConnectionStringInfo("server=local7;", DbProviders.SQLServer)),
+                new Entry("defaultConnection", new ProviderConnectionString ("defaultConnection", "server=sqlserver1;database=default;", DbProviders.SQLServer)),
+                new Entry("Sqlserver15", new ProviderConnectionString("Sqlserver15", "server=local15;", DbProviders.SQLServer)),
+                new Entry("Sqlserver16", new ProviderConnectionString("Sqlserver16", "server=local16;", DbProviders.SQLServer)),
+                new Entry("SQLServer17", new ProviderConnectionString("SQLServer17", "type=Microsoft.Data.SqlClient;", DbProviders.SQLServer)),
+                new Entry("SQLServer18", new ProviderConnectionString("SQLServer18", "type=Microsoft.Data.SqlClient18;", DbProviders.SQLServer)),
+                new Entry("sqlserver2", new ProviderConnectionString("sqlserver2", "type=sqlserver;", DbProviders.SQLServer)),
+                new Entry("sqLServer3", new ProviderConnectionString("sqLServer3", "type=MSSQL;", DbProviders.SQLServer)),
+                new Entry("sqLSErver4", new ProviderConnectionString("sqLSErver4", "type=SQLAzure;", DbProviders.SQLServer)),
+                new Entry("SQLServer5", new ProviderConnectionString("SQLServer5", "type=System.Data.SqlClient;", DbProviders.SQLServer)),
+                new Entry("sqlSERVER6", new ProviderConnectionString("sqlSERVER6", "server=local6;", DbProviders.SQLServer)),
+                new Entry("sqLServer7", new ProviderConnectionString("sqLServer7", "server=local7;", DbProviders.SQLServer)),
             },
             connectionStrings,
-            new EntryComparer());
+            EntryComparer.Instance);
         }
 
         [Fact]
         public void InvalidSelectObjectType()
         {
-            var connectionStringsHelper = GetService();
+            var connectionStringManager = GetService();
 
-            var result = Assert.ThrowsAny<InvalidOperationException>(() => connectionStringsHelper.ParseConnectionStrings(1));
+            var result = Assert.ThrowsAny<InvalidOperationException>(() => connectionStringManager.CloneWithProvider(1));
 
             Assert.Equal("'selectingProvider' only supported type DbProviders or System.String (provided type 'System.Int32')", result.Message);
         }
@@ -358,63 +575,41 @@ namespace NetLah.Extensions.Configuration.Test
         }
 
         [Theory]
-        [InlineData(null, DbProviders.Custom, null)]
-        [InlineData("", DbProviders.Custom, null)]
-        [InlineData(" ", DbProviders.Custom, null)]
-        [InlineData("sqlserver", DbProviders.SQLServer, null)]
-        [InlineData("mssql", DbProviders.SQLServer, null)]
-        [InlineData("sqlazure", DbProviders.SQLServer, null)]
-        [InlineData("system.data.sqlclient", DbProviders.SQLServer, null)]
-        [InlineData("Microsoft.Data.SqlClient", DbProviders.SQLServer, null)]
-        [InlineData("mysql", DbProviders.MySQL, null)]
-        [InlineData("mysql.data.mysqlclient", DbProviders.MySQL, null)]
-        [InlineData("MySqlConnector", DbProviders.MySQL, null)]
-        [InlineData("postgresql", DbProviders.PostgreSQL, null)]
-        [InlineData("Npgsql", DbProviders.PostgreSQL, null)]
-        [InlineData("Postgres", DbProviders.PostgreSQL, null)]
-        [InlineData("cosmos", DbProviders.Custom, "cosmos")]
-        [InlineData("Cosmos", DbProviders.Custom, "Cosmos")]
-        [InlineData("COSMOS", DbProviders.Custom, "COSMOS")]
-        [InlineData("Any", DbProviders.Custom, "Any")]
-        public void ParseProviderNameTest(string providerName, DbProviders expectedProvider, string expectedCustom)
+        [InlineData("name1", "name2", "value3", DbProviders.SQLServer, "any", "name1", "name2", "value3", DbProviders.SQLServer, null, true)]
+        [InlineData("name1", "name2", "value3", DbProviders.SQLServer, null, "name1", "name2", "value3a", DbProviders.SQLServer, null, false)]
+        [InlineData("name1", "name2", "value3", DbProviders.MySQL, "", "name1", "name2", "value3", DbProviders.MySQL, "any", true)]
+        [InlineData("name1", "name2", "value3", DbProviders.MySQL, "custom1", "name1", "name2b", "value3", DbProviders.MySQL, "custom1", false)]
+        [InlineData("name1", "name2", "value3", DbProviders.PostgreSQL, "custom1", "name1", "name2", "value3", DbProviders.PostgreSQL, null, true)]
+        [InlineData("name1", "name2", "value3", DbProviders.PostgreSQL, "", "name1c", "name2", "value3", DbProviders.PostgreSQL, null, false)]
+        [InlineData("name1", "name2", "value3", DbProviders.Custom, "custom1", "name1", "name2", "value3", DbProviders.Custom, "custom1", true)]
+        [InlineData("name1", "name2", "value3", DbProviders.Custom, "custom1", "name1", "name2", "value3", DbProviders.Custom, "custom2", false)]
+        [InlineData("name1", "name2", "value3", DbProviders.SQLServer, null, "name1", "name2", "value3", DbProviders.MySQL, null, false)]
+        [InlineData("name1", "name2", "value3", DbProviders.SQLServer, null, "name1", "name2", "value3", DbProviders.PostgreSQL, null, false)]
+        [InlineData("name1", "name2", "value3", DbProviders.MySQL, null, "name1", "name2", "value3", DbProviders.PostgreSQL, null, false)]
+        public void EntryComparer_Failed(
+            string name1, string name1a, string value1, DbProviders provider1, string custom1,
+            string name2, string name2a, string value2, DbProviders provider2, string custom2, bool expected)
         {
-            var (provider, custom) = ConnectionStringsHelper.ParseProviderName(providerName);
+            var a = new Entry(name1, new ProviderConnectionString(name1a, value1, provider1, custom1));
+            var b = new Entry(name2, new ProviderConnectionString(name2a, value2, provider2, custom2));
+            IEqualityComparer<Entry> comparer = EntryComparer.Instance;
 
-            Assert.Equal(expectedProvider, provider);
-            Assert.Equal(expectedCustom, custom);
-        }
+            var ha = comparer.GetHashCode(a);
+            var hb = comparer.GetHashCode(b);
 
-        private class Entry
-        {
-            public Entry(string name, ConnectionStringInfo connStr)
+            if (expected)
             {
-                Name = name;
-                ConnStr = connStr;
+                Assert.True(comparer.Equals(a, b));
+                Assert.NotEqual(0, ha);
+                Assert.Equal(ha, hb);
             }
-            public string Name { get; set; }
-            public ConnectionStringInfo ConnStr { get; set; }
-        }
-
-        private class EntryComparer : IEqualityComparer<Entry>
-        {
-            public bool Equals([AllowNull] Entry x, [AllowNull] Entry y)
+            else
             {
-                if (x == null || y == null)
-                    return x == null && y == null;
-
-                return x.GetType() == y.GetType() &&
-                    string.Equals(x.Name, y.Name) &&
-                    x.ConnStr is ConnectionStringInfo a &&
-                    y.ConnStr is ConnectionStringInfo b &&
-                    string.Equals(a.ConnectionString, b.ConnectionString) &&
-                    a.Provider == b.Provider &&
-                    string.Equals(a.Custom, b.Custom);
+                Assert.False(comparer.Equals(a, b));
+                Assert.NotEqual(0, ha);
+                Assert.NotEqual(0, hb);
+                Assert.NotEqual(ha, hb);
             }
-
-            public int GetHashCode([DisallowNull] Entry obj)
-                => obj.Name.GetHashCode() ^ (obj.ConnStr?.ConnectionString.GetHashCode() ?? 0) ^
-                (obj.ConnStr?.Provider.GetHashCode() ?? 0) ^
-                (obj.ConnStr?.Custom?.GetHashCode() ?? 0);
         }
     }
 }
