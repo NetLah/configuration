@@ -14,7 +14,7 @@
 
 ConsoleApp
 
-```
+```C#
 public static void Main(string[] args)
 {
     var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Build();
@@ -25,7 +25,7 @@ public static void Main(string[] args)
 
 Full API support
 
-```
+```C#
 var initConfig = new ConfigurationBuilder().Build();
 IConfigurationRoot configuration = new ConfigurationBuilderBuilder()
     .WithConfiguration(initConfig)
@@ -65,7 +65,7 @@ https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/#default
 
 The application binary folder is default basePath for appsettings.json, appsettings.Production.json,etc. In case want to change current directory as basePath:
 
-```
+```C#
 var configuration = new ConfigurationBuilderBuilder()
     .WithCurrentDirectory()
     .Build();
@@ -77,7 +77,7 @@ var configuration = new ConfigurationBuilderBuilder()
 
 `ConfigurationBuilderBuilder` will detect `EnvironmentName` by add configuration environment variables with prefix `DOTNET_` and `ASPNETCORE_`. If no environment variable set, `Production` will use by default. Example of environment variables:
 
-```
+```txt
 ASPNETCORE_ENVIRONMENT = Development
 DOTNET_ENVIRONMENT = Staging
 ```
@@ -86,7 +86,7 @@ DOTNET_ENVIRONMENT = Staging
 
 Sometime, we cannot set the environmentName using environment variable, or we need different environment configuration build lik in unit test project, we can specific the environmentName.
 
-```
+```C#
 var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
     .WithEnvironment("Testing")
     .Build();
@@ -94,7 +94,7 @@ var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuild
 
 ## Add extra configuration sources
 
-```
+```C#
 var configuration = ConfigurationBuilderBuilder.Create<Program>()
     .WithAddConfiguration(cb => cb.AddIniFile("appsettings.ini", optional: true, reloadOnChange: true))
     .WithAddConfiguration(cb => cb.AddXmlFile("appsettings.xml", optional: true, reloadOnChange: true))
@@ -103,7 +103,7 @@ var configuration = ConfigurationBuilderBuilder.Create<Program>()
 
 Or
 
-```
+```C#
 var configuration = ConfigurationBuilderBuilder.Create<Program>()
     .WithAddConfiguration(
         cb => cb.AddIniFile("appsettings.ini", optional: true, reloadOnChange: true)
@@ -118,7 +118,7 @@ Reference at https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configura
 
 ### Support provider
 
-```
+```C#
 public enum DbProviders
 {
     Custom,
@@ -130,7 +130,7 @@ public enum DbProviders
 
 List of supported provider name
 
-```
+```text
 SQLServer
 Mssql
 SQLAzure
@@ -148,20 +148,21 @@ Postgres
 
 ### Configuration appsettings.json or environment
 
-```
-"ConnectionStrings": {
+```json
+{
+  "ConnectionStrings": {
     "DefaultConnection": "Server=localhost;Database=dbname;Integrated Security=True;",
     "DefaultConnection_ProviderName": "System.Data.SqlClient",
     "BlogConnection": "AccountEndpoint=https://7d48.documents.azure.com:443/;",
     "BlogConnection_ProviderName": "Cosmos1",
     "BlogConnection2_Cosmos": "AccountEndpoint=https://7d48.documents.azure.com:443/;"
+  }
 }
-
 ```
 
 ### Basic usage:
 
-```
+```C#
 IConfiguration configuration;
 var connStrManager = new ConnectionStringManager(configuration);
 var conn = connStrManager["defaultConnection"];
@@ -180,7 +181,7 @@ if (conn != null) {
 
 ### Multi connectionNames:
 
-```
+```C#
 var conn = connStrManager["BlogConnection", "BlogConnection2"];
 if (conn != null) {
     if (conn.Provider == DbProviders.Custom && conn.Custom == "Cosmos1") {
