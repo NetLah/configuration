@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
+﻿namespace NetLah.Extensions.Configuration;
 
-namespace NetLah.Extensions.Configuration
+public interface IConnectionStringManager
 {
-    public interface IConnectionStringManager
-    {
-        IDictionary<string, ProviderConnectionString> ConnectionStrings { get; }
+    IDictionary<string, ProviderConnectionString> ConnectionStrings { get; }
 
-        ProviderConnectionString this[string connectionName, params string[] connectionNames] { get; }
+    ProviderConnectionString? this[string? connectionName, params string[]? connectionNames] { get; }
 
-        IConnectionStringManager CloneWithProvider(object selectedProvider);
+    IConnectionStringManager CloneWithProvider(object? selectedProvider);
 
-        IConnectionStringManager CloneWithKeyPreserveSpace();
-    }
+    IConnectionStringManager CloneWithKeyPreserveSpace();
 }

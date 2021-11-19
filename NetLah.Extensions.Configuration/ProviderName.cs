@@ -1,72 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace NetLah.Extensions.Configuration;
 
-namespace NetLah.Extensions.Configuration
+public class ProviderName
 {
-    public class ProviderName
+    public ProviderName(string? custom) : this(DbProviders.Custom, custom) { }
+
+    public ProviderName(DbProviders provider, string? custom = null)
     {
-        public ProviderName(string custom) : this(DbProviders.Custom, custom) { }
-
-        public ProviderName(DbProviders provider, string custom = null)
+        Provider = provider;
+        if (provider == DbProviders.Custom && !string.IsNullOrWhiteSpace(custom))
         {
-            Provider = provider;
-            if (provider == DbProviders.Custom && !string.IsNullOrWhiteSpace(custom))
-            {
-                Custom = custom;
-            }
+            Custom = custom;
         }
-
-        /// <summary>
-        /// Providers: Custom, SQLServer, PostgreSQL, MySQL
-        /// </summary>
-        public DbProviders Provider { get; }
-
-        /// <summary>
-        /// Other provider name when Provider=Custom
-        /// </summary>
-        public string Custom { get; }
     }
 
-    public class ProviderNameComparer : IEqualityComparer<ProviderName>
+    /// <summary>
+    /// Providers: Custom, SQLServer, PostgreSQL, MySQL
+    /// </summary>
+    public DbProviders Provider { get; }
+
+    /// <summary>
+    /// Other provider name when Provider=Custom
+    /// </summary>
+    public string? Custom { get; }
+}
+
+internal class ProviderNameComparer : IEqualityComparer<ProviderName?>
+{
+    internal static readonly StringComparer DefaultStringComparer = StringComparer.OrdinalIgnoreCase;
+    public static readonly ProviderNameComparer Instance = new();
+
+    private ProviderNameComparer() { }
+
+    public bool Equals(ProviderName? x, ProviderName? y)
     {
-        internal static readonly StringComparer DefaultStringComparer = StringComparer.OrdinalIgnoreCase;
-        public static readonly ProviderNameComparer Instance = new();
+        if (x == null || y == null)
+            return x == null && y == null;
 
-        private ProviderNameComparer() { }
+        var result = x.Provider == y.Provider;
+        var isNotCustom = x.Provider != DbProviders.Custom;
 
-        public bool Equals(ProviderName x, ProviderName y)
+        if (!result || isNotCustom)
         {
-            if (x == null || y == null)
-                return x == null && y == null;
-
-            var result = x.Provider == y.Provider;
-            var isNotCustom = x.Provider != DbProviders.Custom;
-
-            if (!result || isNotCustom)
-            {
-                return result && isNotCustom;
-            }
-
-            var xNullOrEmpty = string.IsNullOrEmpty(x.Custom);
-            var yNullOrEmpty = string.IsNullOrEmpty(y.Custom);
-            return xNullOrEmpty || yNullOrEmpty ? xNullOrEmpty && yNullOrEmpty : DefaultStringComparer.Equals(x.Custom, y.Custom);
+            return result && isNotCustom;
         }
 
-        public int GetHashCode(ProviderName obj)
+        var xNullOrEmpty = string.IsNullOrEmpty(x.Custom);
+        var yNullOrEmpty = string.IsNullOrEmpty(y.Custom);
+        return xNullOrEmpty || yNullOrEmpty ? xNullOrEmpty && yNullOrEmpty : DefaultStringComparer.Equals(x.Custom, y.Custom);
+    }
+
+    public int GetHashCode(ProviderName? obj)
+    {
+        if (obj != null)
         {
-            if (obj != null)
+            var hash1 = obj.Provider.GetHashCode();
+            if (obj.Provider != DbProviders.Custom || string.IsNullOrEmpty(obj.Custom))
             {
-                var hash1 = obj.Provider.GetHashCode();
-                if (obj.Provider != DbProviders.Custom || string.IsNullOrEmpty(obj.Custom))
-                {
-                    return hash1;
-                }
-                else
-                {
-                    return hash1 ^ DefaultStringComparer.GetHashCode(obj.Custom);
-                }
+                return hash1;
             }
-            return 0;
+            else
+            {
+                return hash1 ^ DefaultStringComparer.GetHashCode(obj.Custom);
+            }
         }
+        return 0;
     }
 }

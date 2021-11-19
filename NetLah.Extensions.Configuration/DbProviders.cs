@@ -1,10 +1,9 @@
-﻿namespace NetLah.Extensions.Configuration
+﻿namespace NetLah.Extensions.Configuration;
+
+public enum DbProviders
 {
-    public enum DbProviders
-    {
-        Custom,
-        SQLServer,
-        PostgreSQL,
-        MySQL,
-    }
+    Custom,
+    SQLServer,
+    PostgreSQL,
+    MySQL,
 }
