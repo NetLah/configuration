@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NetLah.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj" />
   </ItemGroup>
 
