@@ -5,29 +5,29 @@ using Xunit;
 
 namespace NetLah.Extensions.Configuration.Test;
 
-public class CertificateLoaderTest
+public class CertificateLoaderEncryptionTest
 {
     [Theory]
     [InlineData("development.dummy_ecdsa_p384-2021June.pfx")]
     [InlineData("development.dummy_ecdsa_p521-2021June.pfx")]
     [InlineData("development.dummy-rsa-2071June.pfx")]
     [InlineData("development.dummy-rsa4096-2071June.pfx")]
-    public void ConfigurationConvertTest(string filename)
+    public void Pkcs12EncryptionSigningTest(string filename)
     {
         // Cannot use empty password on MacOS with netcoreapp3.1 and before, only supported custom loader since net5.0
         // https://github.com/dotnet/runtime/issues/23635#issuecomment-334028941
         var filePath = Path.GetFullPath(Path.Combine("Properties", filename));
-        var certConfig = new CertificateConfig { Path = filePath, Password = filename };
-        var result = CertificateLoader.LoadCertificate(certConfig, "Test", requiredPrivateKey: true);
+        var certificateConfig = new CertificateConfig { Path = filePath, Password = filename };
+        var result = CertificateLoader.LoadCertificate(certificateConfig, "Test", requiredPrivateKey: true);
 
         Assert.NotNull(result);
         ValidatePrivateKey(result);
     }
 
-    private static void ValidatePrivateKey(X509Certificate2 cert)
+    private static void ValidatePrivateKey(X509Certificate2 certificate)
     {
-        var rsa = cert.GetRSAPrivateKey();
-        var ecdsa = cert.GetECDsaPrivateKey();
+        var rsa = certificate.GetRSAPrivateKey();
+        var ecdsa = certificate.GetECDsaPrivateKey();
         if (rsa != null)
         {
             RsaEncryptionTest(rsa);
@@ -38,7 +38,7 @@ public class CertificateLoaderTest
         }
         else
         {
-            Assert.True(false);
+            Assert.Fail("Only support rsa or ecdsa");
         }
     }
 

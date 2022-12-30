@@ -1,4 +1,6 @@
-﻿namespace NetLah.Extensions.Configuration;
+﻿using System.Security.Cryptography.X509Certificates;
+
+namespace NetLah.Extensions.Configuration;
 
 #pragma warning disable S125 // Sections of code should not be commented out
 // "Certificate": {
@@ -15,6 +17,10 @@ public class CertificateConfig
     public string? Path { get; set; }
 
     public string? Password { get; set; }
+
+    public X509KeyStorageFlags? KeyStorageFlags { get; set; }
+
+    public bool Reimport { get; set; } = true;
 
     // Cert/Thumbprint on store
 

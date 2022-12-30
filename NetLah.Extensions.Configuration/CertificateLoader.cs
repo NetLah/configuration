@@ -13,18 +13,25 @@ public static class CertificateLoader
 
     public static X509Certificate2? LoadCertificate(CertificateConfig? certInfo, string? description, string? oid = null, bool requiredPrivateKey = true)
     {
-        if (certInfo == null || certInfo.IsFileCert && certInfo.IsStoreSubject || certInfo.IsFileCert && certInfo.IsStoreThumbprint || certInfo.IsStoreThumbprint && certInfo.IsStoreSubject)
+        if (certInfo == null
+            || (certInfo.IsFileCert && certInfo.IsStoreSubject)
+            || (certInfo.IsFileCert && certInfo.IsStoreThumbprint)
+            || (certInfo.IsStoreThumbprint && certInfo.IsStoreSubject))
         {
             throw new InvalidOperationException($"The source {description} specified multiple certificate sources");
         }
 
-        if (!string.IsNullOrEmpty(certInfo.Path)) //certInfo.IsFileCert
+        if (!string.IsNullOrEmpty(certInfo.Path))   // certInfo.IsFileCert
         {
             var isMacOs = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-            var keyStorageFlag = !requiredPrivateKey || isMacOs ?
-                X509KeyStorageFlags.DefaultKeySet :
-                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet;
+#pragma warning disable S3358 // Ternary operators should not be nested
+            var keyStorageFlag = !requiredPrivateKey || isMacOs
+                ? X509KeyStorageFlags.DefaultKeySet
+                : certInfo.KeyStorageFlags is { } keyStorageFlags
+                ? (X509KeyStorageFlags)((int)keyStorageFlags & 63)
+                : X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet;
+#pragma warning restore S3358 // Ternary operators should not be nested
 
             var cert = new X509Certificate2(certInfo.Path, certInfo.Password, keyStorageFlag);
 
@@ -34,22 +41,23 @@ public static class CertificateLoader
                 throw new InvalidOperationException("The certificate doesn't have private key");
             }
 
-            return cert;
+            var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+            return !cert.HasPrivateKey || !isWindows || !certInfo.Reimport
+                ? cert
+                : new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
         }
 
-        if (certInfo.IsStoreThumbprint || certInfo.IsStoreSubject)
-        {
-            return LoadFromStoreCert(certInfo, oid, requiredPrivateKey);
-        }
-
-        return null;
+        return certInfo.IsStoreThumbprint || certInfo.IsStoreSubject ? LoadFromStoreCert(certInfo, oid, requiredPrivateKey) : null;
     }
 
     private static X509Certificate2? LoadFromStoreCert(CertificateConfig certInfo, string? oid, bool requiredPrivateKey)
     {
         var (findType, findValue) = certInfo.IsStoreThumbprint ? (X509FindType.FindByThumbprint, certInfo.Thumbprint) : (X509FindType.FindBySubjectName, certInfo.Subject);
         if (string.IsNullOrEmpty(findValue))
+        {
             return null;
+        }
 
         var storeName = string.IsNullOrEmpty(certInfo.Store) ? StoreName.My.ToString() : certInfo.Store;
         var location = certInfo.Location;
@@ -84,12 +92,7 @@ public static class CertificateLoader
                 .OrderByDescending(certificate => certificate.NotAfter)
                 .FirstOrDefault();
 
-            if (foundCertificate == null)
-            {
-                throw new InvalidOperationException($"The requested certificate {findValue} could not be found in {storeLocation}/{storeName} with AllowInvalid:{allowInvalid} and oid:{oid}.");
-            }
-
-            return foundCertificate;
+            return foundCertificate ?? throw new InvalidOperationException($"The requested certificate {findValue} could not be found in {storeLocation}/{storeName} with AllowInvalid:{allowInvalid} and oid:{oid}.");
         }
         finally
         {
@@ -119,6 +122,7 @@ public static class CertificateLoader
         foreach (var extension in certificate.Extensions.OfType<X509EnhancedKeyUsageExtension>())
         {
             hasEkuExtension = true;
+#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
             foreach (var oid in extension.EnhancedKeyUsages)
             {
                 if (string.Equals(oid.Value, expectedOid, StringComparison.Ordinal))
@@ -126,6 +130,7 @@ public static class CertificateLoader
                     return true;
                 }
             }
+#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
         }
 
         return !hasEkuExtension;
