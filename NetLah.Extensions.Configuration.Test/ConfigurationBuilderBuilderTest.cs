@@ -10,7 +10,7 @@ public class ConfigurationBuilderBuilderTest
 {
     private static string[] GetCommandLines() => new[] { "--CommandLineKey", "CommandLineValue1", "/arg2", "value2b", "--arg3=value3c", "/arg4=value4d", "--Key5:Sub6", "value7e" };
 
-    private static IEnumerable<KeyValuePair<string, string>> GetInMemrory() => new Dictionary<string, string>
+    private static IEnumerable<KeyValuePair<string, string?>> GetInMemrory() => new Dictionary<string, string?>
     {
         ["Key1"] = "Value2",
         ["Key3:Sub4"] = "Value5",

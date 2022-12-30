@@ -178,7 +178,7 @@ public class ConnectionStringParserTest
     public void ParseConfigurationKeyValueTest()
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["key2"] = "Value2",
                 ["complex:a"] = "C1",

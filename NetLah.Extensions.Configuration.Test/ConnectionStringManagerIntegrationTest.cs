@@ -7,7 +7,7 @@ public class ConnectionStringManagerIntegrationTest
 {
     private static IConfigurationRoot NewConfiguration(IEnumerable<KeyValuePair<string, string>>? initialData = null)
     {
-        var configurationBuilder = new ConfigurationBuilder().AddInMemoryCollection(initialData);
+        var configurationBuilder = new ConfigurationBuilder().AddInMemoryCollection(initialData?.Cast<KeyValuePair<string, string?>>());
         var configuration = configurationBuilder.Build();
         return configuration;
     }
@@ -77,7 +77,7 @@ public class ConnectionStringManagerIntegrationTest
     public void BasicExpandTest()
     {
         var configBuilder = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["a"] = "$$1 ${eee} $[Bb] 2 $( cCc ) %{ffff} ${BB} %%3 %{ DD DD }",
                 ["bb"] = "BBbbBB",
@@ -112,9 +112,7 @@ public class ConnectionStringManagerIntegrationTest
         var result = connectionStringManager["DefaultConnection"];
 
         Assert.NotNull(result);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
         Assert.Equal("defaultConnection1;", result.Value);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
         Assert.Equal(DbProviders.Custom, result.Provider);
         Assert.Null(result.Custom);
     }
@@ -172,9 +170,7 @@ public class ConnectionStringManagerIntegrationTest
         else
         {
             Assert.NotNull(result);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expectedConnectionString, result.Value);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expectedProvider, result.Provider);
             Assert.Equal(expectedCustom, result.Custom);
         }
@@ -204,9 +200,7 @@ public class ConnectionStringManagerIntegrationTest
         else
         {
             Assert.NotNull(result);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Value);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Raw);
         }
     }
@@ -242,9 +236,7 @@ public class ConnectionStringManagerIntegrationTest
         else
         {
             Assert.NotNull(result);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Value);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Raw);
         }
     }
@@ -263,9 +255,7 @@ public class ConnectionStringManagerIntegrationTest
         var result = connectionStringManager["defaultConnection"];
 
         Assert.NotNull(result);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
         Assert.Equal("defaultConnection1;", result.Value);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
         Assert.Equal("defaultConnection1;", result.Raw);
     }
 
@@ -297,9 +287,7 @@ public class ConnectionStringManagerIntegrationTest
         else
         {
             Assert.NotNull(result);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Value);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Raw);
         }
     }
@@ -337,9 +325,7 @@ public class ConnectionStringManagerIntegrationTest
         else
         {
             Assert.NotNull(result);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Value);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expected, result.Raw);
         }
     }
@@ -359,7 +345,6 @@ public class ConnectionStringManagerIntegrationTest
         Assert.NotEmpty(service.ConnectionStrings);
         var connStr1 = service["Default"];
         Assert.NotNull(connStr1);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
         Assert.Equal("default", connStr1.Name);
         Assert.Equal("defaultConnection1;", connStr1.Value);
         Assert.NotEmpty(service.ConnectionStrings);
@@ -387,7 +372,6 @@ public class ConnectionStringManagerIntegrationTest
         var connStr5 = service5["Default"];
         Assert.NotNull(connStr5);
         Assert.Equal("defAult", connStr5.Name);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
         Assert.Equal("defaultCosmos5;", connStr5.Value);
         Assert.NotEmpty(service5.ConnectionStrings);
     }

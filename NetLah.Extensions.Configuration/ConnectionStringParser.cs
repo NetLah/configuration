@@ -34,7 +34,7 @@ internal class ConnectionStringParser
         => configuration
             .GetChildren()
             .Where(s => s.Value != null)
-            .Select(s => new KeyValuePair<string, string>(s.Key, s.Value))
+            .Select(s => new KeyValuePair<string, string>(s.Key, s.Value!))
             .ToArray();
 
     public Dictionary<string, ProviderConnectionString> Parse()

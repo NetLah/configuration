@@ -21,10 +21,7 @@ public class CertificateLoaderTest
         var result = CertificateLoader.LoadCertificate(certConfig, "Test", requiredPrivateKey: true);
 
         Assert.NotNull(result);
-
-#pragma warning disable CS8604 // Possible null reference argument.
         ValidatePrivateKey(result);
-#pragma warning restore CS8604 // Possible null reference argument.
     }
 
     private static void ValidatePrivateKey(X509Certificate2 cert)

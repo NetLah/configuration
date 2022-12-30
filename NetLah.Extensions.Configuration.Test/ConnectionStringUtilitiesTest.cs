@@ -77,8 +77,8 @@ public class ConnectionStringUtilitiesTest
     public void ConfigGetPartialTest()
     {
         var service = GetConfigurationFromString("accountEndpoint=https://7d48.documents.azure.com:443/;");
-        AssertPartial1(service.Get<ServiceOptions>());
-        AssertPartial2(service.Get<CustomCosmosOptions>());
+        AssertPartial1(service.Get<ServiceOptions>()!);
+        AssertPartial2(service.Get<CustomCosmosOptions>()!);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class ConnectionStringUtilitiesTest
     {
         var service = GetConfigurationFromString(" provider = \" The Name \" ; accountEndpoint = ; AccountKey= Pa$$w0rd ; Number = -1234 ; AMOUNT = 3.14159");
 
-        var svcOptions = service.Get<ServiceOptions>();
+        var svcOptions = service.Get<ServiceOptions>()!;
 
         AssertFull(service, svcOptions);
     }
@@ -114,7 +114,7 @@ public class ConnectionStringUtilitiesTest
     {
         var service = GetConfigurationFromString(" accountEndpoint = \"\" ; duration= 1.23:5 ; url = file:///C:/Temp/Document.pdf ");
 
-        var svcOptions = service.Get<ServiceOptions>();
+        var svcOptions = service.Get<ServiceOptions>()!;
 
         AssertOther(service, svcOptions);
     }
@@ -138,7 +138,7 @@ public class ConnectionStringUtilitiesTest
 
         var configuration = connStr.ToConfiguration();
 
-        var svcOptions = configuration.Get<ServiceOptions>();
+        var svcOptions = configuration.Get<ServiceOptions>()!;
 
         Assert.NotNull(connStr.Configuration);
         AssertOtherOptions(svcOptions);
@@ -149,7 +149,7 @@ public class ConnectionStringUtilitiesTest
     {
         var connStr = " accountEndpoint = \"\" ; duration= 1.23:5 ; url = file:///C:/Temp/Document.pdf ";
 
-        var svcOptions = ConnectionStringUtilities.Get<ServiceOptions>(connStr);
+        var svcOptions = ConnectionStringUtilities.Get<ServiceOptions>(connStr)!;
 
         AssertOtherOptions(svcOptions);
     }
@@ -161,7 +161,7 @@ public class ConnectionStringUtilitiesTest
 
         Assert.Null(connStr.Configuration);
 
-        var svcOptions = connStr.Get<ServiceOptions>();
+        var svcOptions = connStr.Get<ServiceOptions>()!;
 
         Assert.NotNull(connStr.Configuration);
         AssertOtherOptions(svcOptions);

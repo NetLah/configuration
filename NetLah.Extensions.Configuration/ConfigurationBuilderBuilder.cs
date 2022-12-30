@@ -14,7 +14,7 @@ public sealed class ConfigurationBuilderBuilder
     private IConfigurationBuilder? _configurationBuilder;
     private IConfiguration? _hostConfig;
     private IConfiguration? _configuration;
-    private IEnumerable<KeyValuePair<string, string>>? _initialData;
+    private IEnumerable<KeyValuePair<string, string?>>? _initialData;
 
     private IConfigurationBuilder ConfigureBuilder()
     {
@@ -133,7 +133,7 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithInMemory(IEnumerable<KeyValuePair<string, string>> initialData)
+    public ConfigurationBuilderBuilder WithInMemory(IEnumerable<KeyValuePair<string, string?>> initialData)
     {
         _initialData = initialData;
         return ResetBuilder();

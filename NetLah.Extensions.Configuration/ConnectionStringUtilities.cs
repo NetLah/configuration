@@ -18,13 +18,13 @@ public static class ConnectionStringUtilities
     public static IConfiguration ToConfiguration(this ProviderConnectionString providerConnectionString)
         => providerConnectionString.Configuration ??= ToConfiguration(providerConnectionString.Value);
 
-    public static TOptions Get<TOptions>(string connectionString)
+    public static TOptions? Get<TOptions>(string connectionString)
     {
         var configuration = ToConfiguration(connectionString);
         return configuration.Get<TOptions>();
     }
 
-    public static TOptions Get<TOptions>(this ProviderConnectionString providerConnectionString)
+    public static TOptions? Get<TOptions>(this ProviderConnectionString providerConnectionString)
     {
         var configuration = providerConnectionString.ToConfiguration();
         return configuration.Get<TOptions>();

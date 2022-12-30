@@ -13,7 +13,7 @@ public class ConnectionStringManagerTest
 
     private static IConnectionStringManager GetService()
     {
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string>()).Build();
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         return new ConnectionStringManager(configuration);
     }
 
@@ -316,9 +316,7 @@ public class ConnectionStringManagerTest
         if (expectedProvider is { } expectedProviderValue)
         {
             Assert.NotNull(providerName);
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expectedProviderValue, providerName.Provider);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expectedCustom, providerName.Custom);
         }
         else
