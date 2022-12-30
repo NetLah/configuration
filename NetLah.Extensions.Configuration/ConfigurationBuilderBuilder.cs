@@ -143,4 +143,13 @@ public sealed class ConfigurationBuilderBuilder
         => new ConfigurationBuilderBuilder()
             .WithCommandLines(args)
             .WithAppSecrets<TStartup>();
+
+    public static ConfigurationBuilderBuilder Create(Assembly assembly, string[]? args = null)
+        => new ConfigurationBuilderBuilder()
+            .WithCommandLines(args)
+            .WithAppSecrets(assembly);
+
+    public static ConfigurationBuilderBuilder Create(string[]? args = null)
+        => new ConfigurationBuilderBuilder()
+            .WithCommandLines(args);
 }
