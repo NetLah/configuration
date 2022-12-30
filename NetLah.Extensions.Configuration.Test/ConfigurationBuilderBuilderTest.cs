@@ -37,7 +37,7 @@ public class ConfigurationBuilderBuilderTest
                     if (provider is JsonConfigurationProvider jsonConfigurationProvider)
                     {
                         Assert.Equal(path, jsonConfigurationProvider.Source.Path);
-    }
+                    }
                     else if (provider is IniConfigurationProvider iniConfigurationProvider)
                     {
                         Assert.Equal(path, iniConfigurationProvider.Source.Path);
@@ -120,6 +120,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration);
@@ -138,6 +143,12 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "MemoryConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
             });
 
         AssertInMemrory(configuration);
@@ -156,6 +167,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         Assert.Equal("Production", builder.EnvironmentName);
@@ -176,6 +192,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Development.json",
+                "secrets.json",
+                null,
             });
 
         Assert.Equal("Development", builder.EnvironmentName);
@@ -194,6 +215,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration);
@@ -211,6 +237,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration);
@@ -228,6 +259,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         Assert.Equal("MainValue1-new-location", configuration["MainKey"]);
@@ -246,6 +282,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration);
@@ -264,6 +305,12 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
             });
 
         Assert.Equal("Value2a", configuration["Key1"]);
@@ -283,6 +330,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider"
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration);
@@ -300,6 +352,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider"
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration);
@@ -317,6 +374,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider"
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration);
@@ -350,6 +412,12 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertInMemrory(configuration);
@@ -376,6 +444,12 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertInMemrory(configuration);
@@ -393,6 +467,12 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
             });
 
         AssertProduction(configuration);
@@ -411,6 +491,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
             });
 
         AssertProduction(configuration);
@@ -428,6 +513,17 @@ public class ConfigurationBuilderBuilderTest
         Assert.Equal("Production", builder.EnvironmentName);
         var configuration1 = builder.Build();
         AssertProduction(configuration1);
+        AssertProviders(configuration1, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+            });
 
         var configuration2 = builder.WithEnvironment("dev").Build();
         Assert.Equal("dev", builder.EnvironmentName);
@@ -437,6 +533,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.dev.json",
+                null,
+                null,
             });
 
         AssertDevelopment(configuration2);
@@ -456,6 +557,12 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Development.json",
+                "secrets.json",
+                null,
+                null,
             });
 
         AssertDevelopment(configuration);
@@ -474,6 +581,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Development.json",
+                "secrets.json",
+                null,
             });
 
         AssertDevelopment(configuration);
@@ -492,6 +604,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Testing.json",
+                null,
+                null,
             });
 
         Assert.Equal("MainValue1", configuration["MainKey"]);
@@ -517,6 +634,14 @@ public class ConfigurationBuilderBuilderTest
                 "XmlConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                "appsettings.ini",
+                "appsettings.xml",
+                null,
+                null,
             });
 
         AssertProduction(configuration);
@@ -540,6 +665,13 @@ public class ConfigurationBuilderBuilderTest
                 "IniConfigurationProvider",
                 "XmlConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                "appsettings.json",
+                "appsettings.Production.json",
+                "appsettings.ini",
+                "appsettings.xml",
+                null,
             });
 
         AssertProduction(configuration);
@@ -556,6 +688,11 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                default,
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
             });
 
         AssertProduction(configuration2);
@@ -589,6 +726,13 @@ public class ConfigurationBuilderBuilderTest
                 "JsonConfigurationProvider",
                 "IniConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                null,
+                null,
+                "appsettings.json",
+                "appsettings.Staging.json",
+                "appsettings.ini",
+                null,
             });
 
         AssertInMemrory(configuration);
