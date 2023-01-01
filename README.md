@@ -29,7 +29,7 @@ Full API support
 var initConfig = new ConfigurationBuilder().Build();
 IConfigurationRoot configuration = new ConfigurationBuilderBuilder()
     .WithConfiguration(initConfig)
-    .WithInMemory(new Dictionary<string, string>{ ["Key:Sub"] = "Value" })
+    .WithInMemory(new Dictionary<string, string?>{ ["Key:Sub"] = "Value" })
     .WithBasePath("C:/App/bin")
     .WithCurrentDirectory()
     .WithBaseDirectory()
