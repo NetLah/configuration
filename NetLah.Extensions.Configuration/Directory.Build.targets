@@ -21,7 +21,7 @@
     <PackageReference Update="NetLah.Abstractions" Version="[0.2.1,1)" />
     <PackageReference Include="NetLah.AssemblyInfo.BuildTime.Target" Version="[0.2.0,1)" PrivateAssets="All" />
     <PackageReference Update="NetLah.Extensions.CommandLineUtils" Version="0.1.0-a1.2" />
-    <PackageReference Update="NetLah.Extensions.Configuration" Version="[0.2.1,1)" />
+    <PackageReference Update="NetLah.Extensions.Configuration" Version="[0.2.2,1)" />
     <PackageReference Update="NetLah.Extensions.EventAggregator" Version="[0.2.0,1)" />
     <PackageReference Update="NetLah.Extensions.HttpOverrides" Version="[0.2.1,1)" />
     <PackageReference Update="NetLah.Extensions.Logging.Reference" Version="[0.2.3,1)" />
@@ -42,7 +42,7 @@
     <PackageReference Update="xunit.runner.visualstudio" Version="2.*" PrivateAssets="All" />
 
     <!--serilog-->
-    <PackageReference Update="Serilog" Version="[2.10.0,3)" />
+    <PackageReference Update="Serilog" Version="[2.11.0,3)" />
     <PackageReference Update="Serilog.AspNetCore" Version="[6.0.0,7)" />
     <PackageReference Update="Serilog.Enrichers.Thread" Version="[3.1.0,4)" />
     <PackageReference Update="Serilog.Extensions.Hosting" Version="[5.0.0,6)" />
