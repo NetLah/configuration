@@ -46,9 +46,9 @@ public class CertificateLoaderEncryptionTest
     {
         const string plainText = "Hello, world! こんにちは世界 ഹലോ വേൾഡ് Kαληµε´ρα κο´σµε";
 
-        var cipher = Convert.ToBase64String(rsa.Encrypt(Encoding.UTF8.GetBytes(plainText), RSAEncryptionPadding.Pkcs1));
+        var cipher = Convert.ToBase64String(rsa.Encrypt(Encoding.UTF8.GetBytes(plainText), RSAEncryptionPadding.OaepSHA512));
         var encBytes = Convert.FromBase64String(cipher);
-        var decBytes = rsa.Decrypt(encBytes, RSAEncryptionPadding.Pkcs1);
+        var decBytes = rsa.Decrypt(encBytes, RSAEncryptionPadding.OaepSHA512);
         var text = Encoding.UTF8.GetString(decBytes);
 
         Assert.Equal(plainText, text);
