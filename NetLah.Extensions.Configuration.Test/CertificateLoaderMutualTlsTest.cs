@@ -90,7 +90,7 @@ public class CertificateLoaderMutualTlsTest
 
                 await ssltrream.WriteAsync(plainMessage, token);
 
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1 || NET5_0
                 taskWaitClientCompleted.Wait((int)TimeSpan.FromMinutes(2).TotalMilliseconds, token);
                 await Task.CompletedTask;
 #else
@@ -114,7 +114,6 @@ public class CertificateLoaderMutualTlsTest
             {
                 await taskWaitServerInitialized;
                 await Task.Delay(TimeSpan.FromMilliseconds(10), token);
-#pragma warning disable S1199 // Nested code blocks should not be used
                 {
                     using TcpClient client = new();
                     await client.ConnectAsync(IPAddress.Loopback, 9843);
@@ -140,7 +139,6 @@ public class CertificateLoaderMutualTlsTest
                     var len = await ssltrream.ReadAsync(buffer, token);
                     clientReceived = Encoding.UTF8.GetString(buffer[..len].Span);
                 }
-#pragma warning restore S1199 // Nested code blocks should not be used
 
                 clientCompleted.SetResult(0);
             }
