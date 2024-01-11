@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0;net7.0;net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj" />
+    <ProjectReference Include="..\..\src\NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj" />
   </ItemGroup>
 
 </Project>

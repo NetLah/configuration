@@ -5,7 +5,10 @@ namespace NetLah.Extensions.Configuration.Test;
 
 public class ConnectionStringUtilitiesTest
 {
-    private static IConfiguration GetConfigurationFromString(string connectionString) => ConnectionStringUtilities.ToConfiguration(connectionString);
+    private static IConfiguration GetConfigurationFromString(string connectionString)
+    {
+        return ConnectionStringUtilities.ToConfiguration(connectionString);
+    }
 
     private static T ConfigBind<T>(IConfiguration configuration) where T : new()
     {
@@ -60,9 +63,9 @@ public class ConnectionStringUtilitiesTest
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void EmptyOrNullTest(string connectionString)
+    public void EmptyOrNullTest(string? connectionString)
     {
-        var service = (IConfigurationRoot)GetConfigurationFromString(connectionString);
+        var service = (IConfigurationRoot)GetConfigurationFromString(connectionString!);
 
         Assert.Single(service.Providers);
 
@@ -194,8 +197,6 @@ public class ConnectionStringUtilitiesTest
         AssertOtherOptions(svcOptions);
     }
 
-#pragma warning disable S3459 // Unassigned members should be removed
-#pragma warning disable S1144 // Unused private types or members should be removed
     private class ServiceOptions
     {
         public string? Provider { get; set; }
@@ -213,6 +214,4 @@ public class ConnectionStringUtilitiesTest
         public Uri? AccountEndpoint { get; set; }
         public string? AccountKey { get; set; }
     }
-#pragma warning restore S1144 // Unused private types or members should be removed
-#pragma warning restore S3459 // Unassigned members should be removed
 }

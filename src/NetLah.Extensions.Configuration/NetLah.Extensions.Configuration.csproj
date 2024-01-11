@@ -6,7 +6,7 @@
     <TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1</TargetFrameworks>
     <Description>Reusable classes to build application configuration with environmentName such as ConfigurationBuilderBuilder and CertificateLoader</Description>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>../NetLah.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>../../NetLah.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>NetLah.Extensions.Configuration</RootNamespace>
     <AssemblyName>NetLah.Extensions.Configuration</AssemblyName>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

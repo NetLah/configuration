@@ -3,11 +3,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{A567E864-03A3-4E9C-A733-1D028420959F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C8F86B85-01A0-4996-8E9D-D9FF6617A122}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.targets = src\Directory.Build.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{681CA6F8-0A97-45D0-8572-A00E7E89A3BF}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0307E72C-C6FB-425B-A047-A3A63E2C657E}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.azure\pipelines\azure-pipelines.yml = .azure\pipelines\azure-pipelines.yml
+		Common.props = Common.props
 		DevNotes.md = DevNotes.md
+		Directory.Build.override.targets = Directory.Build.override.targets
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		.github\workflows\dotnet-core.yml = .github\workflows\dotnet-core.yml
@@ -16,9 +27,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp", "samples\ConsoleApp\ConsoleApp.csproj", "{5151E573-8C7C-4B1D-B037-CA944E3F0689}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetLah.Extensions.Configuration", "NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj", "{78638D50-9529-4813-A8CF-4D9016E8AB10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetLah.Extensions.Configuration", "src\NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj", "{78638D50-9529-4813-A8CF-4D9016E8AB10}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetLah.Extensions.Configuration.Test", "NetLah.Extensions.Configuration.Test\NetLah.Extensions.Configuration.Test.csproj", "{0D1F7732-6D13-45CD-9F8E-5EA659C92295}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetLah.Extensions.Configuration.Test", "test\NetLah.Extensions.Configuration.Test\NetLah.Extensions.Configuration.Test.csproj", "{0D1F7732-6D13-45CD-9F8E-5EA659C92295}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +52,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5151E573-8C7C-4B1D-B037-CA944E3F0689} = {A567E864-03A3-4E9C-A733-1D028420959F}
+		{78638D50-9529-4813-A8CF-4D9016E8AB10} = {C8F86B85-01A0-4996-8E9D-D9FF6617A122}
+		{0D1F7732-6D13-45CD-9F8E-5EA659C92295} = {681CA6F8-0A97-45D0-8572-A00E7E89A3BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {32FDB7DD-546B-40D1-910F-5329EF2EF46A}

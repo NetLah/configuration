@@ -4,7 +4,7 @@
     <TargetFrameworks>net8.0;net7.0;net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>../NetLah.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>../../NetLah.snk</AssemblyOriginatorKeyFile>
     <UserSecretsId>netlah-config-test-5f1c15e5acb0</UserSecretsId>
   </PropertyGroup>
 
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj" />
+    <ProjectReference Include="..\..\src\NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj" />
   </ItemGroup>
 
 </Project>

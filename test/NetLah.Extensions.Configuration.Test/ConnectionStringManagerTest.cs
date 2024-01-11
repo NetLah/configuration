@@ -43,14 +43,18 @@ public class ConnectionStringManagerTest
     }
 
     private void VerifyFactory(int times)
-        => _mockFactory.Verify(
-            s => s.Invoke(It.IsAny<KeyValuePair<string, string>[]>(),
-                It.IsAny<Func<string, string>>(),
-                It.IsAny<ProviderName>()
-            ), Times.Exactly(times));
+    {
+        _mockFactory.Verify(
+                s => s.Invoke(It.IsAny<KeyValuePair<string, string>[]>(),
+                    It.IsAny<Func<string, string>>(),
+                    It.IsAny<ProviderName>()
+                ), Times.Exactly(times));
+    }
 
     private void SetupConnectionString(string key, ProviderConnectionString? outValue)
-        => _mockDict.Setup(s => s.TryGetValue(key, out outValue)).Returns(true);
+    {
+        _mockDict.Setup(s => s.TryGetValue(key, out outValue)).Returns(true);
+    }
 
     private void VerifyTryGetValue(int times, string? key = null)
     {
@@ -193,7 +197,7 @@ public class ConnectionStringManagerTest
     [InlineData(0, 0, null)]
     [InlineData(1, 1, "")]
     [InlineData(1, 1, "defaultConnection")]
-    public void Indexer_NullEmpty(int factoryTimes, int tryGetTimes, string connectionName)
+    public void Indexer_NullEmpty(int factoryTimes, int tryGetTimes, string? connectionName)
     {
         var (service, _, _) = GetService2();
         var result = service[connectionName];
@@ -209,7 +213,7 @@ public class ConnectionStringManagerTest
     [InlineData(1, 1, null, null, "")]
     [InlineData(1, 2, "", null, "")]
     [InlineData(1, 2, "", null, "defaultConnection")]
-    public void Indexer_NullEmpty2(int factoryTimes, int tryGetTimes, params string[] connectionNames)
+    public void Indexer_NullEmpty2(int factoryTimes, int tryGetTimes, params string?[] connectionNames)
     {
         var (service, _, _) = GetService2();
         var connectionName = connectionNames.First();
@@ -310,7 +314,7 @@ public class ConnectionStringManagerTest
     [InlineData("sqlserver", DbProviders.SQLServer, null)]
     [InlineData("cosmos", DbProviders.Custom, "cosmos")]
     [InlineData(" Cosmos  ", DbProviders.Custom, " Cosmos  ")]
-    public void ParseSelectProviderName_Test(object selectingProvider, DbProviders? expectedProvider, string expectedCustom)
+    public void ParseSelectProviderName_Test(object? selectingProvider, DbProviders? expectedProvider, string? expectedCustom)
     {
         var providerName = ConnectionStringManager.ParseSelectProviderName(selectingProvider);
         if (expectedProvider is { } expectedProviderValue)

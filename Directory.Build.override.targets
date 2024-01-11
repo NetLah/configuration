@@ -1,0 +1,7 @@
+<Project>
+
+  <ItemGroup Condition="'$(NET_5_0_LESS)' == true">
+    <PackageReference Update="xunit.runner.visualstudio" Version="2.4.*" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

@@ -11,19 +11,19 @@ public class ConnectionStringParserTest
     private static ConnectionStringParser GetService(ProviderName? select)
     {
         var configuration = new KeyValuePair<string, string>[] {
-                new KeyValuePair<string, string>("default1", "Default1"),
-                new KeyValuePair<string, string>("conn2_sqlServer", "sqlServer2"),
-                new KeyValuePair<string, string>("conn3_PostgreSQL", "postgreSQL3"),
-                new KeyValuePair<string, string>("conn4_MySQL", "mySql4"),
-                new KeyValuePair<string, string>("conn5_Cosmos", "cosmos5"),
-                new KeyValuePair<string, string>("conn6", "sqlServer6"),
-                new KeyValuePair<string, string>("conn6_ProviderName", "sqlServer"),
-                new KeyValuePair<string, string>("conn7", "postgreSQL7"),
-                new KeyValuePair<string, string>("conn7_PROVIDERNAME", "POSTGRESQL"),
-                new KeyValuePair<string, string>("conn8", "mySql8"),
-                new KeyValuePair<string, string>("conn8_providername", "mysql"),
-                new KeyValuePair<string, string>("conn9", "cosmos9"),
-                new KeyValuePair<string, string>("conn9_providerName", "COSmos"),
+                new("default1", "Default1"),
+                new("conn2_sqlServer", "sqlServer2"),
+                new("conn3_PostgreSQL", "postgreSQL3"),
+                new("conn4_MySQL", "mySql4"),
+                new("conn5_Cosmos", "cosmos5"),
+                new("conn6", "sqlServer6"),
+                new("conn6_ProviderName", "sqlServer"),
+                new("conn7", "postgreSQL7"),
+                new("conn7_PROVIDERNAME", "POSTGRESQL"),
+                new("conn8", "mySql8"),
+                new("conn8_providername", "mysql"),
+                new("conn9", "cosmos9"),
+                new("conn9_providerName", "COSmos"),
             };
         return new ConnectionStringParser(configuration, select, ConnectionStringsRoot.KeyTrimNormalizer);
     }
@@ -32,10 +32,10 @@ public class ConnectionStringParserTest
     public void ExpandValue_Test()
     {
         var list = new List<ProviderConnectionString> {
-                new ProviderConnectionString("conn1", "value1;r2=${conn2};{conn2};r3=$(conn3);${conn1}"),
-                new ProviderConnectionString("conn2", "value2;ref4a=$[conn4];"),
-                new ProviderConnectionString("conn3", "value3;%{conn2};ref4b=%(conn4);"),
-                new ProviderConnectionString("conn4", "value4;"),
+                new("conn1", "value1;r2=${conn2};{conn2};r3=$(conn3);${conn1}"),
+                new("conn2", "value2;ref4a=$[conn4];"),
+                new("conn3", "value3;%{conn2};ref4b=%(conn4);"),
+                new("conn4", "value4;"),
             };
         var service = new ConnectionStringParser(Enumerable.Empty<KeyValuePair<string, string>>(), null, ConnectionStringsRoot.KeyTrimNormalizer);
         var result = service.ExpandValue(list);
@@ -215,7 +215,7 @@ public class ConnectionStringParserTest
     [InlineData("Cosmos", DbProviders.Custom, "Cosmos")]
     [InlineData("COSMOS", DbProviders.Custom, "COSMOS")]
     [InlineData("Any", DbProviders.Custom, "Any")]
-    public void ParseProviderNameTest(string providerName, DbProviders expectedProvider, string expectedCustom)
+    public void ParseProviderNameTest(string? providerName, DbProviders expectedProvider, string? expectedCustom)
     {
         var provider = ConnectionStringParser.ParseProviderName(providerName);
         Assert.Equal(expectedProvider, provider.Provider);

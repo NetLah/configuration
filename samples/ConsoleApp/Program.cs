@@ -14,6 +14,10 @@ var asmConfig = new AssemblyInfo(typeof(ConfigurationBuilderBuilder).Assembly);
 Console.WriteLine($"AssemblyTitle: {asmConfig.Title}");
 Console.WriteLine($"Version:{asmConfig.InformationalVersion} BuildTime:{asmConfig.BuildTimestampLocal}; Framework:{asmConfig.FrameworkName}");
 
+var asmLib = new AssemblyInfo(typeof(ConfigurationBinder).Assembly);
+Console.WriteLine($"AssemblyTitle: {asmLib.Title}");
+Console.WriteLine($"Version:{asmLib.InformationalVersion} BuildTime:{asmLib.BuildTimestampLocal}; Framework:{asmLib.FrameworkName}");
+
 var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Build();
 var defaultConnectionString = configuration.GetConnectionString("DefaultConnection");
 Console.WriteLine($"[TRACE] ConnectionString: {defaultConnectionString}");
