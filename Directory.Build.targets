@@ -268,6 +268,7 @@
     <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="$(EFCoreFrameworkVersion)" PrivateAssets="All" />
     <PackageReference Update="Microsoft.SqlServer.Server" Version="1.*" />
     <PackageReference Update="Npgsql" Version="$(EFCoreFrameworkVersion)" />
+    <PackageReference Update="Npgsql" Version="8.*" Condition="'$(NET_6_0)' == true Or '$(NET_7_0)' == true" />
     <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(EFCoreFrameworkVersion)" />
     <PackageReference Update="EFCore.NamingConventions" Version="$(EFCoreFrameworkVersion)" />
 
@@ -330,7 +331,7 @@
     <PackageReference Update="Microsoft.Kiota.Serialization.Form" Version="1.*" />
     <PackageReference Update="Microsoft.Kiota.Serialization.Json" Version="1.*" />
     <PackageReference Update="Microsoft.Kiota.Serialization.Text" Version="1.*" />
-    <PackageReference Update="System.IdentityModel.Tokens.Jwt" Version="6.*" />
+    <PackageReference Update="System.IdentityModel.Tokens.Jwt" Version="7.*" />
 
     <!--nuget-->
     <PackageReference Update="NuGet.Common" Version="6.*" />
