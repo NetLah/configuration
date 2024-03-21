@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -43,13 +44,54 @@ public class CertificateLoaderMutualTlsTest
         }
     }
 
-    private static void ClientServerAuthenticate(X509Certificate2 certificate)
+
+
+
+    private static async void ClientServerAuthenticate(X509Certificate2 certificate)
     {
         const string plainText = "Hello, world! こんにちは世界 ഹലോ വേൾഡ് Kαληµε´ρα κο´σµε";
         var plainMessage = Encoding.UTF8.GetBytes(plainText);
+        var port1 = 19000;
+        var port2 = 19999;
+
+        int FindPort(int port1, int port2)
+        {
+            var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+            var tcpListeners = ipGlobalProperties.GetActiveTcpListeners();
+            var flags = new bool[port2 - port1 + 1];
+            Array.Fill(flags, true);
+
+            foreach (var tcpListener in tcpListeners)
+            {
+                if (IPAddress.IsLoopback(tcpListener.Address))
+                {
+                    for (var port = port1; port <= port2; port++)
+                    {
+                        if (tcpListener.Port == port)
+                        {
+                            flags[port - port1] = false;
+                        }
+                    }
+                }
+            }
+
+            for (var port = port1; port <= port2; port++)
+            {
+                if (flags[port - port1])
+                {
+                    return port;
+                }
+            }
+
+            return -1;
+        }
+
+        var port = FindPort(port1, port2);
 
         // https://stackoverflow.com/questions/28548326/net-sslstream-with-client-certificate
         // https://code-maze.com/csharp-task-run-vs-task-factory-startnew/
+
+        Assert.InRange(port, port1, port2);
 
         var clientCompleted = new TaskCompletionSource<int>();
         var serverInitialized = new TaskCompletionSource<int>();
@@ -58,14 +100,14 @@ public class CertificateLoaderMutualTlsTest
         string? clientReceived = null;
         string? serverReceived = null;
 
-        async Task DoServer(CancellationToken token, Task taskWaitClientCompleted)
+        async Task DoServer(int port, CancellationToken token, Task taskWaitClientCompleted)
         {
-            var server = new TcpListener(IPAddress.Loopback, 9843);
+            var server = new TcpListener(IPAddress.Loopback, port);
             try
             {
                 server.Start();
                 serverInitialized.SetResult(0);
-                using TcpClient client = server.AcceptTcpClient();
+                using var client = server.AcceptTcpClient();
 
 #if NETCOREAPP3_1
                 using var ssltrream = new SslStream(client.GetStream(), false, (s, cm, ch, p) => true);
@@ -108,7 +150,7 @@ public class CertificateLoaderMutualTlsTest
             }
         }
 
-        async Task DoClient(CancellationToken token, Task taskWaitServerInitialized)
+        async Task DoClient(int port, CancellationToken token, Task taskWaitServerInitialized)
         {
             try
             {
@@ -116,7 +158,7 @@ public class CertificateLoaderMutualTlsTest
                 await Task.Delay(TimeSpan.FromMilliseconds(10), token);
                 {
                     using TcpClient client = new();
-                    await client.ConnectAsync(IPAddress.Loopback, 9843);
+                    await client.ConnectAsync(IPAddress.Loopback, port);
 
 #if NETCOREAPP3_1
                     using var ssltrream = new SslStream(client.GetStream(), false, (s, cm, ch, p) => true);
@@ -150,8 +192,8 @@ public class CertificateLoaderMutualTlsTest
 
         var cts = new CancellationTokenSource();
 
-        var clientWork = Task.Run(() => DoClient(cts.Token, serverInitialized.Task));
-        var serverWork = Task.Run(() => DoServer(cts.Token, clientCompleted.Task));
+        var clientWork = Task.Run(() => DoClient(port, cts.Token, serverInitialized.Task));
+        var serverWork = Task.Run(() => DoServer(port, cts.Token, clientCompleted.Task));
 
         Task.WaitAny(new[] { Task.WhenAll(clientWork, serverWork) }, TimeSpan.FromSeconds(20));
         cts.Cancel();
