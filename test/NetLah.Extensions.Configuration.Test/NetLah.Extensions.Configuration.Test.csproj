@@ -8,6 +8,11 @@
     <UserSecretsId>netlah-config-test-5f1c15e5acb0</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(NETCOREAPP3_1)' == true Or '$(NET5_0)' == true">
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
   <ItemGroup>
     <Content Include="appsettings.*" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="New-Location\*.json" CopyToOutputDirectory="PreserveNewest" />
