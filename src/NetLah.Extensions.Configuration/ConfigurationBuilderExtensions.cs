@@ -4,33 +4,22 @@ namespace Microsoft.Extensions.Configuration;
 
 public static class ConfigurationBuilderExtensions
 {
-    public static IConfigurationBuilder AddTransformConfiguration(this IConfigurationBuilder configBuilder, string transform = "Transform")
+    public static TConfigurationBuilder AddTransformConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, string sectionKey = "Transform")
+        where TConfigurationBuilder : IConfigurationBuilder
     {
-        if (string.IsNullOrWhiteSpace(transform))
+        if (string.IsNullOrWhiteSpace(sectionKey))
         {
-            throw new ArgumentException($"{nameof(transform)} is required", nameof(transform));
+            throw new ArgumentException($"{nameof(sectionKey)} is required", nameof(sectionKey));
         }
-        var configuration = configBuilder.Build();
-        var configurationSection = configuration.GetSection(transform);
+
+        var configuration = configBuilder is IConfigurationRoot configurationRoot
+            ? configurationRoot
+            : configBuilder.Build();
+
+        var configurationSection = configuration.GetSection(sectionKey);
 
         configBuilder.Add(new TransformConfigurationSource(configurationSection));
 
         return configBuilder;
     }
-
-#if !NETSTANDARD
-    public static ConfigurationManager AddTransformConfiguration(this ConfigurationManager manager, string transform = "Transform")
-    {
-        if (string.IsNullOrWhiteSpace(transform))
-        {
-            throw new ArgumentException($"{nameof(transform)} is required", nameof(transform));
-        }
-        var configurationSection = manager.GetSection(transform);
-
-        IConfigurationBuilder configBuilder = manager;
-        configBuilder.Add(new TransformConfigurationSource(configurationSection));
-
-        return manager;
-    }
-#endif
 }
