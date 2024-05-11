@@ -92,8 +92,10 @@ public sealed class ConfigurationBuilderBuilder
 #else
     public ConfigurationManager Manager => _builderOrManager ??= ConfigureBuilder();
 
+    [Obsolete("This property is obsolete. Use " + nameof(Manager) + " instead.")]
     public IConfigurationBuilder Builder => Manager;
 
+    [Obsolete("This method is obsolete. Use property " + nameof(Manager) + " instead.")]
     public IConfigurationRoot Build() => Manager;
 #endif
 

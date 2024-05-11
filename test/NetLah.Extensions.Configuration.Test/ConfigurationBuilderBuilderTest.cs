@@ -117,7 +117,7 @@ public class ConfigurationBuilderBuilderTest
     public void Default_Success()
     {
         var configuration = new ConfigurationBuilderBuilder()
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -137,7 +137,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithAddConfiguration(b => b.AddInMemoryCollection(GetInMemrory()))
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -160,7 +160,7 @@ public class ConfigurationBuilderBuilderTest
         var builder = new ConfigurationBuilderBuilder()
             .WithAppSecrets<ConfigurationBuilderBuilderTest>();
 
-        var configuration = builder.Build();
+        var configuration = builder.BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -183,7 +183,7 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Development")
             .WithAppSecrets<ConfigurationBuilderBuilderTest>();
 
-        var configuration = builder.Build();
+        var configuration = builder.BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -206,7 +206,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithBaseDirectory()
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -226,7 +226,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithBasePath("")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -246,7 +246,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithBasePath("New-Location")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -267,7 +267,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithCurrentDirectory()
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -287,7 +287,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithCommandLines("--Key1", "Value2a", "/Key3:Sub4", "Value5b")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -311,7 +311,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithCommandLines(null)
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -331,7 +331,7 @@ public class ConfigurationBuilderBuilderTest
     public void WithCommandLines_Create_Null_Explicit()
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(null)
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -351,7 +351,7 @@ public class ConfigurationBuilderBuilderTest
     public void WithCommandLines_Create_Null_Implicit()
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -374,7 +374,7 @@ public class ConfigurationBuilderBuilderTest
         var argsHasNull = new string[] { null };
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
-        Assert.Throws<NullReferenceException>(() => new ConfigurationBuilderBuilder().WithCommandLines(argsHasNull).Build());
+        Assert.Throws<NullReferenceException>(() => new ConfigurationBuilderBuilder().WithCommandLines(argsHasNull).BuildConfigurationRoot());
     }
 
     [Fact]
@@ -386,7 +386,7 @@ public class ConfigurationBuilderBuilderTest
 
         var configuration = new ConfigurationBuilderBuilder()
             .WithConfiguration(initialConfiguration)
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "ChainedConfigurationProvider",
@@ -404,7 +404,7 @@ public class ConfigurationBuilderBuilderTest
 
         var configuration2 = new ConfigurationBuilderBuilder()
           .WithConfiguration(initialConfiguration.GetSection("Key3"))
-          .Build();
+          .BuildConfigurationRoot();
 
         Assert.Null(configuration2["Key1"]);
         Assert.Null(configuration2["Key3:Sub4"]);
@@ -416,7 +416,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = new ConfigurationBuilderBuilder()
             .WithInMemory(GetInMemrory())
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "MemoryConfigurationProvider",
@@ -437,7 +437,7 @@ public class ConfigurationBuilderBuilderTest
     public void Build_Production_Success()
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(GetCommandLines())
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -460,7 +460,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(GetCommandLines())
             .WithEnvironment("Production")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -492,7 +492,7 @@ public class ConfigurationBuilderBuilderTest
 #endif
 
         Assert.Equal("Production", builder.EnvironmentName);
-        var configuration1 = builder.Build();
+        var configuration1 = builder.BuildConfigurationRoot();
         AssertProduction(configuration1);
         AssertProviders(configuration1, new[] {
                 "JsonConfigurationProvider",
@@ -506,7 +506,7 @@ public class ConfigurationBuilderBuilderTest
                 null,
             });
 
-        var configuration2 = builder.WithEnvironment("dev").Build();
+        var configuration2 = builder.WithEnvironment("dev").BuildConfigurationRoot();
         Assert.Equal("dev", builder.EnvironmentName);
 
         AssertProviders(configuration2, new[] {
@@ -530,7 +530,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(GetCommandLines())
             .WithEnvironment("Development")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -555,7 +555,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
             .WithEnvironment("Development")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -578,7 +578,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(GetCommandLines())
             .WithEnvironment("Testing")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -605,7 +605,7 @@ public class ConfigurationBuilderBuilderTest
                 cb => cb.AddIniFile("appsettings.ini", optional: true, reloadOnChange: true)
                     .AddXmlFile("appsettings.xml", optional: true, reloadOnChange: true)
             )
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -635,7 +635,7 @@ public class ConfigurationBuilderBuilderTest
         var builder = new ConfigurationBuilderBuilder()
             .WithAddConfiguration(cb => cb.AddIniFile("appsettings.ini", optional: true, reloadOnChange: true))
             .WithAddConfiguration(cb => cb.AddXmlFile("appsettings.xml", optional: true, reloadOnChange: true));
-        var configuration = builder.Build();
+        var configuration = builder.BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -658,7 +658,7 @@ public class ConfigurationBuilderBuilderTest
 
         AssertXml(configuration);
 
-        var configuration2 = builder.WithClearAddedConfiguration().Build();
+        var configuration2 = builder.WithClearAddedConfiguration().BuildConfigurationRoot();
 
         AssertProviders(configuration2, new[] {
                 "JsonConfigurationProvider",
@@ -692,7 +692,7 @@ public class ConfigurationBuilderBuilderTest
             .WithCommandLines(args)
             .WithInMemory(GetInMemrory())
             .WithConfiguration(initConfig)
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "ChainedConfigurationProvider",
@@ -720,7 +720,7 @@ public class ConfigurationBuilderBuilderTest
     public void CreateWithAssemblyBuild_Production_Success()
     {
         var configuration = ConfigurationBuilderBuilder.Create(typeof(ConfigurationBuilderBuilderTest).Assembly, GetCommandLines())
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -743,7 +743,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create(typeof(ConfigurationBuilderBuilderTest).Assembly, GetCommandLines())
             .WithEnvironment("Production")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -766,7 +766,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create(typeof(ConfigurationBuilderBuilderTest).Assembly, GetCommandLines())
             .WithEnvironment("Development")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -790,7 +790,7 @@ public class ConfigurationBuilderBuilderTest
     public void CreateWithoutAssemblyBuild_Production_Success()
     {
         var configuration = ConfigurationBuilderBuilder.Create(GetCommandLines())
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -813,7 +813,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create(GetCommandLines())
             .WithEnvironment("Development")
-            .Build();
+            .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
