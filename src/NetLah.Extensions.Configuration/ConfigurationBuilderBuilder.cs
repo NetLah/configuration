@@ -1,6 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
+#if NETSTANDARD
+using BuilderOrManager = Microsoft.Extensions.Configuration.IConfigurationBuilder;
+#else
+using BuilderOrManager = Microsoft.Extensions.Configuration.ConfigurationManager;
+#endif
 
 namespace NetLah.Extensions.Configuration;
 
@@ -11,25 +16,26 @@ public sealed class ConfigurationBuilderBuilder
     private Assembly? _assembly;
     private string? _basePath;
     private string? _environmentName;
-    private IConfigurationBuilder? _configurationBuilder;
-    private IConfiguration? _hostConfig;
+    private BuilderOrManager? _builderOrManager;
     private IConfiguration? _configuration;
     private IEnumerable<KeyValuePair<string, string?>>? _initialData;
 
-    private IConfigurationBuilder ConfigureBuilder()
+    private BuilderOrManager ConfigureBuilder()
     {
-        if (_environmentName == null && _hostConfig == null)
+#if NETSTANDARD
+        var configBuilder = new ConfigurationBuilder();
+        configBuilder.AddInMemoryCollection();
+#else
+        var configBuilder = new BuilderOrManager();
+#endif
+        configBuilder
+            .AddEnvironmentVariables(prefix: "DOTNET_")
+            .AddEnvironmentVariables(prefix: "ASPNETCORE_");
+
+        if (_environmentName == null)
         {
-            var hostConfigBuilder = new ConfigurationBuilder()
-                 .AddInMemoryCollection()
-                 .AddEnvironmentVariables(prefix: "DOTNET_")
-                 .AddEnvironmentVariables(prefix: "ASPNETCORE_");
-            _hostConfig = hostConfigBuilder.Build();
+            _environmentName = ((IConfigurationBuilder)configBuilder).Build()[HostDefaults.EnvironmentKey];
         }
-
-        _environmentName ??= _hostConfig?[HostDefaults.EnvironmentKey];
-
-        var configBuilder = (IConfigurationBuilder)new ConfigurationBuilder();
 
         if (!string.IsNullOrEmpty(_basePath))
         {
@@ -37,21 +43,20 @@ public sealed class ConfigurationBuilderBuilder
         }
 
         if (_configuration is { } configuration)
+        {
             configBuilder.AddConfiguration(configuration, shouldDisposeConfiguration: false);
+        }
 
         if (_initialData is { } initialData)
-            configBuilder.AddInMemoryCollection(initialData);
-
-        if (_hostConfig != null)
         {
-            configBuilder.AddConfiguration(_hostConfig, shouldDisposeConfiguration: true);
+            configBuilder.AddInMemoryCollection(initialData);
         }
 
         configBuilder
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-        foreach (Action<IConfigurationBuilder> buildAction in _configureConfigActions)
+        foreach (var buildAction in _configureConfigActions)
         {
             buildAction(configBuilder);
         }
@@ -72,7 +77,7 @@ public sealed class ConfigurationBuilderBuilder
 
     private ConfigurationBuilderBuilder ResetBuilder()
     {
-        _configurationBuilder = null;
+        _builderOrManager = null;
         return this;
     }
 
@@ -80,9 +85,17 @@ public sealed class ConfigurationBuilderBuilder
 
     public string? ApplicationName => _assembly?.FullName;
 
-    public IConfigurationBuilder Builder => _configurationBuilder ??= ConfigureBuilder();
+#if NETSTANDARD
+    public IConfigurationBuilder Builder => _builderOrManager ??= ConfigureBuilder();
 
     public IConfigurationRoot Build() => Builder.Build();
+#else
+    public ConfigurationManager Manager => _builderOrManager ??= ConfigureBuilder();
+
+    public IConfigurationBuilder Builder => Manager;
+
+    public IConfigurationRoot Build() => Manager;
+#endif
 
     public ConfigurationBuilderBuilder WithAddConfiguration(Action<IConfigurationBuilder> addConfiguration)
     {
@@ -109,7 +122,10 @@ public sealed class ConfigurationBuilderBuilder
     public ConfigurationBuilderBuilder WithClearAddedConfiguration(bool clear = true)
     {
         if (clear)
+        {
             _configureConfigActions.Clear();
+        }
+
         return ResetBuilder();
     }
 
