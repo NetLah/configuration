@@ -113,6 +113,14 @@ public class ConfigurationBuilderBuilderTest
         Assert.Equal("Value5", configuration["Key3:Sub4"]);
     }
 
+    private static void AssertTransform(IConfiguration configuration)
+    {
+        Assert.Equal("Information", configuration["Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Authentication"]);
+        Assert.Equal("Error", configuration["Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Mvc"]);
+        Assert.Equal("Verbose", configuration["Serilog:MinimumLevel:Override:Microsoft.Hosting.Lifetime"]);
+        Assert.Equal("Warning", configuration["Serilog:MinimumLevel:Override:Microsoft.Extensions.Configuration"]);
+    }
+
     [Fact]
     public void Default_Success()
     {
@@ -829,5 +837,96 @@ public class ConfigurationBuilderBuilderTest
 
         AssertDevelopment(configuration);
         AssertCommandLines(configuration);
+    }
+
+    [Fact]
+    public void EnvironmentNameTransform()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create()
+            .WithEnvironment("Transform")
+            .WithTransformConfiguration()
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "TransformConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Transform.json",
+                null,
+                null,
+            });
+
+        AssertTransform(configuration);
+    }
+
+    [Fact]
+    public void EnvironmentTransform()
+    {
+        Dictionary<string, string> env = new()
+        {
+            { "env_Transform__0","Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Authentication=Information" },
+            { "env_Transform__1__Key","Serilog:MinimumLevel" },
+            { "env_Transform__1__Value","Override:Microsoft.AspNetCore.Mvc=Error" },
+            { "env_Transform__2__Key","Serilog:MinimumLevel:Override" },
+            { "env_Transform__2__Values__0","Microsoft.Hosting.Lifetime=Verbose" },
+            { "env_Transform__2__Values__1","Microsoft.Extensions.Configuration=Warning" }
+        };
+
+        foreach (var (key, value) in env)
+        {
+            Environment.SetEnvironmentVariable(key, value);
+        }
+
+        var configuration = ConfigurationBuilderBuilder.Create()
+            .WithTransformConfiguration("env_Transform")
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "TransformConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+            });
+
+        AssertTransform(configuration);
+    }
+
+    [Fact]
+    public void CommandLinesTransform()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(new string[] {
+            "/tt:0=Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Authentication=Information",
+            "/tt:1:Key=Serilog:MinimumLevel",
+            "/tt:1:Value=Override:Microsoft.AspNetCore.Mvc=Error",
+            "/tt:2:Key=Serilog:MinimumLevel:Override",
+            "/tt:2:Values:0=Microsoft.Hosting.Lifetime=Verbose",
+            "/tt:2:Values:1=Microsoft.Extensions.Configuration=Warning"
+        })
+            .WithTransformConfiguration("tt")
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+                "TransformConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        AssertTransform(configuration);
     }
 }

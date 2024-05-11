@@ -18,6 +18,14 @@ var asmLib = new AssemblyInfo(typeof(ConfigurationBinder).Assembly);
 Console.WriteLine($"AssemblyTitle: {asmLib.Title}");
 Console.WriteLine($"Version:{asmLib.InformationalVersion} BuildTime:{asmLib.BuildTimestampLocal}; Framework:{asmLib.FrameworkName}");
 
-var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Build();
+#if NET6_0_OR_GREATER
+var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Manager.AddTransformConfiguration();
+#else
+var configuration = ConfigurationBuilderBuilder.Create<Program>(args).WithTransformConfiguration().Build();
+#endif
 var defaultConnectionString = configuration.GetConnectionString("DefaultConnection");
 Console.WriteLine($"[TRACE] ConnectionString: {defaultConnectionString}");
+
+var serilogKey = "Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Authentication";
+var serilogValue = configuration[serilogKey];
+Console.WriteLine($"[TRACE] {serilogKey} = {serilogValue}");

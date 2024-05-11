@@ -12,6 +12,7 @@ namespace NetLah.Extensions.Configuration;
 public sealed class ConfigurationBuilderBuilder
 {
     private readonly List<Action<IConfigurationBuilder>> _configureConfigActions = new();
+    private readonly List<Action<IConfigurationBuilder>> _configurePostConfigActions = new();
     private string[]? _args;
     private Assembly? _assembly;
     private string? _basePath;
@@ -72,6 +73,11 @@ public sealed class ConfigurationBuilderBuilder
             configBuilder.AddCommandLine(args);
         }
 
+        foreach (var buildAction in _configurePostConfigActions)
+        {
+            buildAction(configBuilder);
+        }
+
         return configBuilder;
     }
 
@@ -102,6 +108,12 @@ public sealed class ConfigurationBuilderBuilder
     public ConfigurationBuilderBuilder WithAddConfiguration(Action<IConfigurationBuilder> addConfiguration)
     {
         _configureConfigActions.Add(addConfiguration);
+        return ResetBuilder();
+    }
+
+    public ConfigurationBuilderBuilder WithAddPostConfiguration(Action<IConfigurationBuilder> addConfiguration)
+    {
+        _configurePostConfigActions.Add(addConfiguration);
         return ResetBuilder();
     }
 
@@ -155,6 +167,11 @@ public sealed class ConfigurationBuilderBuilder
     {
         _initialData = initialData;
         return ResetBuilder();
+    }
+
+    public ConfigurationBuilderBuilder WithTransformConfiguration(string transform = "Transform")
+    {
+        return WithAddPostConfiguration(builder => builder.AddTransformConfiguration(transform));
     }
 
     public static ConfigurationBuilderBuilder Create<TStartup>(string[]? args = null)
