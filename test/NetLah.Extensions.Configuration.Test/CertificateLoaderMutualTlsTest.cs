@@ -44,10 +44,7 @@ public class CertificateLoaderMutualTlsTest
         }
     }
 
-
-
-
-    private static async void ClientServerAuthenticate(X509Certificate2 certificate)
+    private static void ClientServerAuthenticate(X509Certificate2 certificate)
     {
         const string plainText = "Hello, world! こんにちは世界 ഹലോ വേൾഡ് Kαληµε´ρα κο´σµε";
         var plainMessage = Encoding.UTF8.GetBytes(plainText);
