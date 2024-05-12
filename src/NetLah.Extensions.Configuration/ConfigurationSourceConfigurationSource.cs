@@ -25,15 +25,16 @@ public class ConfigurationSourceConfigurationSource : IConfigurationSource
     public IConfigurationProvider Build(IConfigurationBuilder builder)
     {
         var logger = Helper.GetLogger();
+
         var settingLines = _configurationSection.AsEnumerable()
             .OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase)
             .Select(kv => $"{kv.Key}={kv.Value}")
             .ToArray();
         var configurationSourceState = string.Join(Environment.NewLine, settingLines);
         var configuration = _lastConfiguration;
+
         if (configuration == null || !string.Equals(_lastConfigurationSourceState, configurationSourceState))
         {
-
             var sourceFiles = _configurationSection?.Get<string[]>() ?? Array.Empty<string>();
 
 #if NETSTANDARD
