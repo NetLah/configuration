@@ -3,7 +3,11 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Common.props', '$(MSBuildThisFileDirectory)'))" Condition="'$(ImportedCommonProps)' == ''" />
 
   <Import Project="$(MSBuildThisFileDirectory)Directory.Build.initial.targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.initial.targets')" />
-
+  
+  <PropertyGroup Condition="'$(PackageLibraryTargetFlag)' == ''">
+    <PackageLibraryTargetFlag>true</PackageLibraryTargetFlag>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(LatestDevFrameworkVersion)' == ''">
     <LatestDevFrameworkVersion>9.0.0-preview.1.*</LatestDevFrameworkVersion>
   </PropertyGroup>
@@ -27,6 +31,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_3_1_LESS_OR_STD)' == true">4.1.2</NpgsqlVersion>
+    <NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_9_0_UP)' == true">8.0.2</NpgsqlVersion>
     <SystemTextJsonVersion Condition="'$(NET_5_0_LESS_OR_STD)' == true">5.0.0</SystemTextJsonVersion>
     <SwashbuckleVersion Condition="'$(SwashbuckleVersion)' == ''">6.0.0</SwashbuckleVersion>
   </PropertyGroup>
