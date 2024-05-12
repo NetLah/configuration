@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="OtherConfig/**" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="OtherConfig/**" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>

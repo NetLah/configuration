@@ -29,6 +29,19 @@ var defaultConnectionString = configuration.GetConnectionString("DefaultConnecti
 Console.WriteLine($"[TRACE] ConnectionString: {defaultConnectionString}");
 
 var serilogKey = "Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Authentication";
-var serilogValue = configuration[serilogKey];
-Console.WriteLine($"[TRACE] {serilogKey} = {serilogValue}");
-Console.WriteLine($"[TRACE] Serilog:MinimumLevel:Override:NetLah.Extensions.Configuration = {configuration["Serilog:MinimumLevel:Override:NetLah.Extensions.Configuration"]}");
+PrintConfiguration(serilogKey);
+PrintConfiguration("Serilog:MinimumLevel:Override:NetLah.Extensions.Configuration");
+
+File.WriteAllText("OtherConfig/appsettings.ini", @"
+[Serilog:MinimumLevel:Override]
+NetLah.Extensions.Configuration = Trace
+");
+await Task.Delay(700);
+Console.WriteLine($"[TRACE] Update file");
+PrintConfiguration(serilogKey);
+PrintConfiguration("Serilog:MinimumLevel:Override:NetLah.Extensions.Configuration");
+
+void PrintConfiguration(string key)
+{
+    Console.WriteLine($"[TRACE] {key} = {configuration[key]}");
+}
