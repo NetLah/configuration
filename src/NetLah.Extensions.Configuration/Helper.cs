@@ -6,7 +6,7 @@ namespace NetLah.Extensions.Configuration;
 
 internal static class Helper
 {
-    private static readonly Lazy<ILogger?> _loggerLazy = new(() => AppLogReference.GetAppLogLogger(typeof(ConfigurationSourceConfigurationSource).Namespace));
+    private static readonly Lazy<ILogger?> _loggerLazy = new(() => AppLogReference.GetAppLogLogger(typeof(AddFileConfigurationSource).Namespace));
 
     public static ILogger GetLogger()
     {

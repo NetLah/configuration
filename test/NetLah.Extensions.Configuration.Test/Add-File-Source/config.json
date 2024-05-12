@@ -1,0 +1,6 @@
+{
+  "MainKey": "Add-File-Source/config.json",
+  "JsonSection": {
+    "Add-File-Source": "config.json"
+  }
+}

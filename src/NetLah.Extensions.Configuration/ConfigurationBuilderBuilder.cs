@@ -170,9 +170,9 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithConfigurationSource(string sectionKey = "ConfigurationSource", bool throwIfNotSupport = false)
+    public ConfigurationBuilderBuilder WithAddFileConfiguration(string sectionKey = "AddFile", bool throwIfNotSupport = false)
     {
-        return WithAddPostConfiguration(builder => builder.AddConfigurationSource(sectionKey, throwIfNotSupport));
+        return WithAddPostConfiguration(builder => builder.AddAddFileConfiguration(sectionKey, throwIfNotSupport));
     }
 
     public ConfigurationBuilderBuilder WithTransformConfiguration(string sectionKey = "Transform")

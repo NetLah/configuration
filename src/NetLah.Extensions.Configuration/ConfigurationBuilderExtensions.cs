@@ -24,7 +24,7 @@ public static class ConfigurationBuilderExtensions
         return configBuilder;
     }
 
-    public static TConfigurationBuilder AddConfigurationSource<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, string sectionKey = "ConfigurationSource", bool throwIfNotSupport = false)
+    public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, string sectionKey = "AddFile", bool throwIfNotSupport = false)
         where TConfigurationBuilder : IConfigurationBuilder
     {
         if (string.IsNullOrWhiteSpace(sectionKey))
@@ -41,7 +41,7 @@ public static class ConfigurationBuilderExtensions
         var sources = configBuilder.Sources;
         var lastIndexJson = FindLastIndex(sources, s => s is JsonConfigurationSource js && js.Path != "secrets.json");
         lastIndexJson = lastIndexJson >= 0 ? lastIndexJson + 1 : sources.Count;
-        sources.Insert(lastIndexJson, new ConfigurationSourceConfigurationSource(configurationSection, throwIfNotSupport));
+        sources.Insert(lastIndexJson, new AddFileConfigurationSource(configurationSection, throwIfNotSupport));
 
         return configBuilder;
     }

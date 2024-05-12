@@ -21,9 +21,9 @@ Console.WriteLine($"AssemblyTitle: {asmLib.Title}");
 Console.WriteLine($"Version:{asmLib.InformationalVersion} BuildTime:{asmLib.BuildTimestampLocal}; Framework:{asmLib.FrameworkName}");
 
 #if NET6_0_OR_GREATER
-var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Manager.AddConfigurationSource().AddTransformConfiguration();
+var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Manager.AddAddFileConfiguration().AddTransformConfiguration();
 #else
-var configuration = ConfigurationBuilderBuilder.Create<Program>(args).WithConfigurationSource().WithTransformConfiguration().Build();
+var configuration = ConfigurationBuilderBuilder.Create<Program>(args).WithAddFileConfiguration().WithTransformConfiguration().Build();
 #endif
 var defaultConnectionString = configuration.GetConnectionString("DefaultConnection");
 Console.WriteLine($"[TRACE] ConnectionString: {defaultConnectionString}");
@@ -32,7 +32,7 @@ var serilogKey = "Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Authenticat
 PrintConfiguration(serilogKey);
 PrintConfiguration("Serilog:MinimumLevel:Override:NetLah.Extensions.Configuration");
 
-File.WriteAllText("OtherConfig/appsettings.ini", @"
+File.WriteAllText("AddFile/appsettings.ini", @"
 [Serilog:MinimumLevel:Override]
 NetLah.Extensions.Configuration = Trace
 ");

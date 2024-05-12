@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<configuration>
-  <MainKey>Other-Config-Source/config.xml</MainKey>
-  <XmlSection>
-    <Other-Config-Source>config.xml</Other-Config-Source>
-  </XmlSection>
-</configuration>

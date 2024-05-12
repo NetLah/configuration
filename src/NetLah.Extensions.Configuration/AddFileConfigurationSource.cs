@@ -9,14 +9,14 @@ using TConfigurationBuilder = Microsoft.Extensions.Configuration.ConfigurationMa
 
 namespace NetLah.Extensions.Configuration;
 
-public class ConfigurationSourceConfigurationSource : IConfigurationSource
+public class AddFileConfigurationSource : IConfigurationSource
 {
     private readonly IConfigurationSection _configurationSection;
     private readonly bool _throwIfNotSupport;
     private string? _lastConfigurationSourceState;
     private IConfigurationRoot? _lastConfiguration;
 
-    public ConfigurationSourceConfigurationSource(IConfigurationSection configurationSection, bool throwIfNotSupport = false)
+    public AddFileConfigurationSource(IConfigurationSection configurationSection, bool throwIfNotSupport = false)
     {
         _configurationSection = configurationSection ?? throw new ArgumentNullException(nameof(configurationSection));
         _throwIfNotSupport = throwIfNotSupport;

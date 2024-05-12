@@ -931,11 +931,11 @@ public class ConfigurationBuilderBuilderTest
     }
 
     [Fact]
-    public void ConfigurationSourceDevelopmentSecrets_NoSources()
+    public void AddFileConfigurationDevelopmentSecrets_NoSources()
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
             .WithEnvironment("Development")
-            .WithConfigurationSource()
+            .WithAddFileConfiguration()
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -956,13 +956,13 @@ public class ConfigurationBuilderBuilderTest
     }
 
     [Fact]
-    public void ConfigurationSourceProduction_configJson()
+    public void AddFileConfigurationProduction_configJson()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
             new string[] {
-                "/ConfigurationSource:0=Other-Config-Source/config.json"
+                "/AddFile:0=Add-File-Source/config.json"
             })
-            .WithConfigurationSource()
+            .WithAddFileConfiguration()
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -980,19 +980,19 @@ public class ConfigurationBuilderBuilderTest
             });
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
-        Assert.Equal("Other-Config-Source/config.json", configuration["MainKey"]);
-        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
+        Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
     }
 
     [Fact]
-    public void ConfigurationSourceProduction_configJsonIni()
+    public void AddFileConfigurationProduction_configJsonIni()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
             new string[] {
-                "/ConfigurationSource:0=Other-Config-Source/config.json",
-                "/ConfigurationSource:1=Other-Config-Source/config.ini",
+                "/AddFile:0=Add-File-Source/config.json",
+                "/AddFile:1=Add-File-Source/config.ini",
             })
-            .WithConfigurationSource()
+            .WithAddFileConfiguration()
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1010,20 +1010,20 @@ public class ConfigurationBuilderBuilderTest
             });
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
-        Assert.Equal("Other-Config-Source/config.ini", configuration["MainKey"]);
-        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
-        Assert.Equal("config.ini", configuration["IniSection:Other-Config-Source"]);
+        Assert.Equal("Add-File-Source/config.ini", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Add-File-Source"]);
     }
 
     [Fact]
-    public void ConfigurationSourceProduction_configIniJson()
+    public void AddFileConfigurationProduction_configIniJson()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
             new string[] {
-                "/ConfigurationSource:0=Other-Config-Source/config.ini",
-                "/ConfigurationSource:1=Other-Config-Source/config.json",
+                "/AddFile:0=Add-File-Source/config.ini",
+                "/AddFile:1=Add-File-Source/config.json",
             })
-            .WithConfigurationSource()
+            .WithAddFileConfiguration()
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1041,21 +1041,21 @@ public class ConfigurationBuilderBuilderTest
             });
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
-        Assert.Equal("Other-Config-Source/config.json", configuration["MainKey"]);
-        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
-        Assert.Equal("config.ini", configuration["IniSection:Other-Config-Source"]);
+        Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Add-File-Source"]);
     }
 
     [Fact]
-    public void ConfigurationSourceProduction_configIniJsonXml()
+    public void AddFileConfigurationProduction_configIniJsonXml()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
             new string[] {
-                "/ConfigurationSource:0=Other-Config-Source/config.ini",
-                "/ConfigurationSource:1=Other-Config-Source/config.json",
-                "/ConfigurationSource:2=Other-Config-Source/config.xml",
+                "/AddFile:0=Add-File-Source/config.ini",
+                "/AddFile:1=Add-File-Source/config.json",
+                "/AddFile:2=Add-File-Source/config.xml",
             })
-            .WithConfigurationSource()
+            .WithAddFileConfiguration()
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1073,20 +1073,20 @@ public class ConfigurationBuilderBuilderTest
             });
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
-        Assert.Equal("Other-Config-Source/config.xml", configuration["MainKey"]);
-        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
-        Assert.Equal("config.ini", configuration["IniSection:Other-Config-Source"]);
-        Assert.Equal("config.xml", configuration["XmlSection:Other-Config-Source"]);
+        Assert.Equal("Add-File-Source/config.xml", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Add-File-Source"]);
+        Assert.Equal("config.xml", configuration["XmlSection:Add-File-Source"]);
     }
 
     [Fact]
-    public void ConfigurationSource_Transform()
+    public void AddFileConfiguration_Transform()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
             new string[] {
                 "/configSrc:0=appsettings.Transform.json",
             })
-            .WithConfigurationSource("configSrc")
+            .WithAddFileConfiguration("configSrc")
             .WithTransformConfiguration()
             .BuildConfigurationRoot();
 
