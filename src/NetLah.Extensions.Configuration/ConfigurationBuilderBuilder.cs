@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
 #if NETSTANDARD
+// todo: rename to TConfigurationBuilder
 using BuilderOrManager = Microsoft.Extensions.Configuration.IConfigurationBuilder;
 #else
 using BuilderOrManager = Microsoft.Extensions.Configuration.ConfigurationManager;
@@ -169,9 +170,14 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithTransformConfiguration(string transform = "Transform")
+    public ConfigurationBuilderBuilder WithConfigurationSource(string sectionKey = "ConfigurationSource", bool throwIfNotSupport = false)
     {
-        return WithAddPostConfiguration(builder => builder.AddTransformConfiguration(transform));
+        return WithAddPostConfiguration(builder => builder.AddConfigurationSource(sectionKey, throwIfNotSupport));
+    }
+
+    public ConfigurationBuilderBuilder WithTransformConfiguration(string sectionKey = "Transform")
+    {
+        return WithAddPostConfiguration(builder => builder.AddTransformConfiguration(sectionKey));
     }
 
     public static ConfigurationBuilderBuilder Create<TStartup>(string[]? args = null)

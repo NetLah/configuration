@@ -929,4 +929,30 @@ public class ConfigurationBuilderBuilderTest
 
         AssertTransform(configuration);
     }
+
+    [Fact]
+    public void ConfigurationSourceDevelopmentSecrets_NoSources()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
+            .WithEnvironment("Development")
+            .WithAddPostConfiguration(builder => builder.AddConfigurationSource())
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Development.json",
+                null,
+                "secrets.json",
+                null,
+            });
+
+        AssertDevelopment(configuration);
+    }
+
 }
