@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ConsoleApp": {
+      "commandName": "Project",
+      "commandLineArgs": "/ConfigurationSource:0=OtherConfig/appsettings.ini"
+    }
+  }
+}
