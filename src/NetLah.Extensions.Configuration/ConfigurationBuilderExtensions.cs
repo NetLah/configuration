@@ -24,7 +24,7 @@ public static class ConfigurationBuilderExtensions
         return configBuilder;
     }
 
-    public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, string sectionKey = "AddFile", bool throwIfNotSupport = false)
+    public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, string sectionKey = "AddFile", bool? throwIfNotSupport = null)
         where TConfigurationBuilder : IConfigurationBuilder
     {
         if (string.IsNullOrWhiteSpace(sectionKey))

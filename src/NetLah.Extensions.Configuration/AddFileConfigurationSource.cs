@@ -12,14 +12,16 @@ namespace NetLah.Extensions.Configuration;
 public class AddFileConfigurationSource : IConfigurationSource
 {
     private readonly IConfigurationSection _configurationSection;
-    private readonly bool _throwIfNotSupport;
-    private string? _lastConfigurationSourceState;
+    private readonly bool? _throwIfNotSupport;
+    private readonly AddFileOptions _defaultOptions;
+    private string? _lastAddFileState;
     private IConfigurationRoot? _lastConfiguration;
 
-    public AddFileConfigurationSource(IConfigurationSection configurationSection, bool throwIfNotSupport = false)
+    public AddFileConfigurationSource(IConfigurationSection configurationSection, bool? throwIfNotSupport = null)
     {
         _configurationSection = configurationSection ?? throw new ArgumentNullException(nameof(configurationSection));
         _throwIfNotSupport = throwIfNotSupport;
+        _defaultOptions = new AddFileOptions { Optional = true, ReloadOnChange = true };
     }
 
     public IConfigurationProvider Build(IConfigurationBuilder builder)
@@ -30,13 +32,11 @@ public class AddFileConfigurationSource : IConfigurationSource
             .OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase)
             .Select(kv => $"{kv.Key}={kv.Value}")
             .ToArray();
-        var configurationSourceState = string.Join(Environment.NewLine, settingLines);
+        var addFileState = string.Join(Environment.NewLine, settingLines);
         var configuration = _lastConfiguration;
 
-        if (configuration == null || !string.Equals(_lastConfigurationSourceState, configurationSourceState))
+        if (configuration == null || !string.Equals(_lastAddFileState, addFileState))
         {
-            var sourceFiles = _configurationSection?.Get<string[]>() ?? Array.Empty<string>();
-
 #if NETSTANDARD
             var configurationBuilder = new ConfigurationBuilder();
             configurationBuilder.AddInMemoryCollection();
@@ -45,31 +45,95 @@ public class AddFileConfigurationSource : IConfigurationSource
 #endif
             configurationBuilder.SetFileProvider(builder.GetFileProvider());
 
-            foreach (var sourceFile in sourceFiles)
+            foreach (var item in _configurationSection.GetChildren())
             {
-                var ext = Path.GetExtension(sourceFile);
-                if (".json".Equals(ext, StringComparison.OrdinalIgnoreCase))
+                if (item.Value == null && item["Type"] is { } typeValue1)
                 {
-                    logger.LogInformation("Add configuration source {sourceFile}", sourceFile);
-                    configurationBuilder.AddJsonFile(sourceFile, true, true);
+                    if ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase))
+                    {
+                        item.Bind(_defaultOptions);
+                        _defaultOptions.ResetCache();
+                        logger.LogInformation("AddFile default settings {@settings}", _defaultOptions);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            logger.LogError("AddFile unknown type entry {@entry}", item.AsEnumerable().Where(kv => kv.Key != item.Path).ToDictionary(kv => kv.Key[(item.Path.Length + 1)..], kv => kv.Value));
+                        }
+                        catch
+                        {
+                            // do nothing
+                        }
+                    }
                 }
-                else if (".xml".Equals(ext, StringComparison.OrdinalIgnoreCase))
+            }
+
+            foreach (var item in _configurationSection.GetChildren())
+            {
+                if (item.Value is { } value1)
                 {
-                    logger.LogInformation("Add configuration source {sourceFile}", sourceFile);
-                    configurationBuilder.AddXmlFile(sourceFile, true, true);
+                    AddFile(new AddFileSource
+                    {
+                        LoggingLevel = _defaultOptions.LoggingLevel,
+                        Optional = _defaultOptions.Optional,
+                        ReloadOnChange = _defaultOptions.ReloadOnChange,
+                        Path = value1,
+                    });
                 }
-                else if (".ini".Equals(ext, StringComparison.OrdinalIgnoreCase))
+                else if (item.Value == null && item["Type"] is { } typeValue1)
                 {
-                    logger.LogInformation("Add configuration source {sourceFile}", sourceFile);
-                    configurationBuilder.AddIniFile(sourceFile, true, true);
+                    // Settings and type already processed
+                }
+                else if (item["Path"] is { } path)
+                {
+                    var addFileSource = new AddFileSource
+                    {
+                        LoggingLevel = _defaultOptions.LoggingLevel,
+                        Optional = _defaultOptions.Optional,
+                        ReloadOnChange = _defaultOptions.ReloadOnChange
+                    };
+                    item.Bind(addFileSource);
+                    addFileSource.ResetCache();
+                    AddFile(addFileSource);
                 }
                 else
                 {
-                    logger.LogError("ConfigurationSource is not supported file extension {extension} of file {sourceFile}", ext, sourceFile);
-
-                    if (_throwIfNotSupport)
+                    if (_defaultOptions.IsEnableLogging())
                     {
-                        throw new Exception($"ConfigurationSource is not supported file extension {ext}, only support .json, .ini and .xml. ConfigurationSource file {sourceFile}");
+                        logger.LogError("AddFile unknown entry {@entry}", item);
+                    }
+                }
+            }
+
+            void AddFile(AddFileSource source)
+            {
+                var ext = Path.GetExtension(source.Path);
+                if (".json".Equals(ext, StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
+                    configurationBuilder.AddJsonFile(source.Path!, source.Optional, source.ReloadOnChange);
+                }
+                else if (".xml".Equals(ext, StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
+                    configurationBuilder.AddXmlFile(source.Path!, source.Optional, source.ReloadOnChange);
+                }
+                else if (".ini".Equals(ext, StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
+                    configurationBuilder.AddIniFile(source.Path!, source.Optional, source.ReloadOnChange);
+                }
+                else
+                {
+                    if (source.IsEnableLogging())
+                    {
+                        logger.LogError("AddFile is not supported file extension {extension} of file {sourceFile}", ext, source.Path);
+                    }
+
+                    if (_defaultOptions.ThrowIfNotSupport ?? _throwIfNotSupport ?? false)
+                    {
+                        throw new Exception($"AddFile is not supported file extension {ext}, only support .json, .ini and .xml. AddFile source {source.Path}");
                     }
                 }
             }
@@ -80,12 +144,12 @@ public class AddFileConfigurationSource : IConfigurationSource
             configuration = configurationBuilder;
 #endif
 
-            _lastConfigurationSourceState = configurationSourceState;
+            _lastAddFileState = addFileState;
             _lastConfiguration = configuration;
         }
         else
         {
-            logger.LogInformation("ConfigurationSource uses cache");
+            logger.Log(_defaultOptions.GetLogLevel(), "AddFile configuration uses cache");
         }
 
         return new ChainedConfigurationProvider(new ChainedConfigurationSource

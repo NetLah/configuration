@@ -170,7 +170,7 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithAddFileConfiguration(string sectionKey = "AddFile", bool throwIfNotSupport = false)
+    public ConfigurationBuilderBuilder WithAddFileConfiguration(string sectionKey = "AddFile", bool? throwIfNotSupport = null)
     {
         return WithAddPostConfiguration(builder => builder.AddAddFileConfiguration(sectionKey, throwIfNotSupport));
     }
