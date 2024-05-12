@@ -15,7 +15,8 @@
 
   <ItemGroup>
     <Content Include="appsettings.*" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="New-Location\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="New-Location/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Other-Config-Source/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

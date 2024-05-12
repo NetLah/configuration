@@ -935,7 +935,7 @@ public class ConfigurationBuilderBuilderTest
     {
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
             .WithEnvironment("Development")
-            .WithAddPostConfiguration(builder => builder.AddConfigurationSource())
+            .WithConfigurationSource()
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -953,6 +953,161 @@ public class ConfigurationBuilderBuilderTest
             });
 
         AssertDevelopment(configuration);
+    }
+
+    [Fact]
+    public void ConfigurationSourceProduction_configJson()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/ConfigurationSource:0=Other-Config-Source/config.json"
+            })
+            .WithConfigurationSource()
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Other-Config-Source/config.json", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationSourceProduction_configJsonIni()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/ConfigurationSource:0=Other-Config-Source/config.json",
+                "/ConfigurationSource:1=Other-Config-Source/config.ini",
+            })
+            .WithConfigurationSource()
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Other-Config-Source/config.ini", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Other-Config-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationSourceProduction_configIniJson()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/ConfigurationSource:0=Other-Config-Source/config.ini",
+                "/ConfigurationSource:1=Other-Config-Source/config.json",
+            })
+            .WithConfigurationSource()
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Other-Config-Source/config.json", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Other-Config-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationSourceProduction_configIniJsonXml()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/ConfigurationSource:0=Other-Config-Source/config.ini",
+                "/ConfigurationSource:1=Other-Config-Source/config.json",
+                "/ConfigurationSource:2=Other-Config-Source/config.xml",
+            })
+            .WithConfigurationSource()
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Other-Config-Source/config.xml", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Other-Config-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Other-Config-Source"]);
+        Assert.Equal("config.xml", configuration["XmlSection:Other-Config-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationSource_Transform()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/configSrc:0=appsettings.Transform.json",
+            })
+            .WithConfigurationSource("configSrc")
+            .WithTransformConfiguration()
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+                "TransformConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+                null,
+            });
+
+        AssertProduction(configuration);
+        AssertTransform(configuration);
     }
 
 }
