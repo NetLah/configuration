@@ -1,6 +1,8 @@
-﻿namespace NetLah.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace NetLah.Extensions.Configuration;
 
 public class AddFileConfigurationSourceOptionsBuilder : AddFileConfigurationSourceOptions
 {
-    public string SectionKey { get; set; } = string.Empty;
+    public IConfigurationSection ConfigurationSection { get; set; } = null!;
 }

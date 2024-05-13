@@ -11,12 +11,12 @@ namespace NetLah.Extensions.Configuration;
 
 public class AddFileConfigurationSource : IConfigurationSource
 {
-    private readonly AddFileConfigurationSourceOptions _options;
+    private readonly AddFileConfigurationSourceOptionsBuilder _options;
     private readonly AddFileOptions _defaultOptions;
     private string? _lastAddFileState;
     private IConfigurationRoot? _lastConfiguration;
 
-    public AddFileConfigurationSource(AddFileConfigurationSourceOptions options)
+    public AddFileConfigurationSource(AddFileConfigurationSourceOptionsBuilder options)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         if (options.ConfigurationSection == null)

@@ -24,60 +24,40 @@ public static class ConfigurationBuilderExtensions
         return configBuilder;
     }
 
-    public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, string sectionKey = "AddFile", bool? throwIfNotSupport = null)
+    public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, Action<AddFileConfigurationSourceOptions>? configureOptions = null, string sectionKey = "AddFile", bool? throwIfNotSupport = null)
         where TConfigurationBuilder : IConfigurationBuilder
     {
-        return configBuilder.AddAddFileConfiguration(options => options.ThrowIfNotSupport = throwIfNotSupport, sectionKey);
+        var addFileOptionsBuilder = new AddFileConfigurationSourceOptionsBuilder
+        {
+            SectionKey = sectionKey,
+            ThrowIfNotSupport = throwIfNotSupport
+        };
+
+        configureOptions?.Invoke(addFileOptionsBuilder);
+
+        return configBuilder.AddAddFileConfiguration(addFileOptionsBuilder);
     }
 
     internal static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, AddFileConfigurationSourceOptionsBuilder optionsBuilder)
-    where TConfigurationBuilder : IConfigurationBuilder
-    {
-        return optionsBuilder == null
-            ? throw new ArgumentNullException(nameof(optionsBuilder))
-            : configBuilder.AddAddFileConfiguration(optionsBuilder, optionsBuilder.SectionKey);
-    }
-
-    public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, Action<AddFileConfigurationSourceOptions> configureOptions, string sectionKey = "AddFile")
-        where TConfigurationBuilder : IConfigurationBuilder
-    {
-        if (configureOptions == null)
-        {
-            throw new ArgumentNullException(nameof(configureOptions));
-        }
-
-        var options = new AddFileConfigurationSourceOptions();
-        configureOptions(options);
-
-        return configBuilder.AddAddFileConfiguration(options, sectionKey);
-    }
-
-    internal static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, AddFileConfigurationSourceOptions options, string sectionKey)
       where TConfigurationBuilder : IConfigurationBuilder
     {
-        if (sectionKey == null)
+        if (optionsBuilder?.SectionKey == null)
         {
-            throw new ArgumentNullException(nameof(sectionKey));
+            throw new ArgumentNullException(nameof(optionsBuilder.SectionKey));
         }
 
         var configuration = configBuilder is IConfigurationRoot configurationRoot
            ? configurationRoot
            : configBuilder.Build();
 
-        var configurationSection = configuration.GetSection(sectionKey);
+        var configurationSection = configuration.GetSection(optionsBuilder.SectionKey);
 
-        options.ConfigurationSection = configurationSection;
+        optionsBuilder.ConfigurationSection = configurationSection;
 
-        return configBuilder.AddAddFileConfiguration(options);
-    }
-
-    internal static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, AddFileConfigurationSourceOptions options)
-        where TConfigurationBuilder : IConfigurationBuilder
-    {
         var sources = configBuilder.Sources;
         var lastIndexJson = FindLastIndex(sources, s => s is JsonConfigurationSource js);   // && js.Path != "secrets.json")
         lastIndexJson = lastIndexJson >= 0 ? lastIndexJson + 1 : sources.Count;
-        sources.Insert(lastIndexJson, new AddFileConfigurationSource(options));
+        sources.Insert(lastIndexJson, new AddFileConfigurationSource(optionsBuilder));
 
         return configBuilder;
     }

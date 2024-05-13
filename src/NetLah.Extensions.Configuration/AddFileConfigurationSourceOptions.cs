@@ -6,9 +6,7 @@ public delegate void ConfigureAddFileDelegate(IConfigurationBuilder builder, Add
 
 public class AddFileConfigurationSourceOptions
 {
-    public IConfigurationSection ConfigurationSection { get; set; } = null!;
-
     public IDictionary<string, ConfigureAddFileDelegate> ConfigureAddFiles { get; } = new Dictionary<string, ConfigureAddFileDelegate>(StringComparer.OrdinalIgnoreCase);
-
+    public string SectionKey { get; set; } = string.Empty;
     public bool? ThrowIfNotSupport { get; set; }
 }

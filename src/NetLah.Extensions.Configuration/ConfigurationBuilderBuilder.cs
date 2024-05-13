@@ -171,7 +171,7 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithAddFileConfiguration(string sectionKey = "AddFile", bool? throwIfNotSupport = null)
+    public ConfigurationBuilderBuilder WithAddFileConfiguration(Action<AddFileConfigurationSourceOptions>? configureOptions = null, string sectionKey = "AddFile", bool? throwIfNotSupport = null)
     {
         if (!_configurePostConfigActions.Contains(ConfigureAddFile))
         {
@@ -180,17 +180,7 @@ public sealed class ConfigurationBuilderBuilder
         _addFileOptionsBuilder ??= new AddFileConfigurationSourceOptionsBuilder();
         _addFileOptionsBuilder.SectionKey = sectionKey;
         _addFileOptionsBuilder.ThrowIfNotSupport = throwIfNotSupport;
-        return ResetBuilder();
-    }
-
-    public ConfigurationBuilderBuilder WithAddFileConfigurationOptions(Action<AddFileConfigurationSourceOptions> configureOptions)
-    {
-        if (configureOptions == null)
-        {
-            throw new ArgumentNullException(nameof(configureOptions));
-        }
-        _addFileOptionsBuilder ??= new AddFileConfigurationSourceOptionsBuilder();
-        configureOptions(_addFileOptionsBuilder);
+        configureOptions?.Invoke(_addFileOptionsBuilder);
         return ResetBuilder();
     }
 

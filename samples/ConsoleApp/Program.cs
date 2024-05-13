@@ -29,8 +29,7 @@ var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Manager
     .AddTransformConfiguration();
 #else
 var configuration = ConfigurationBuilderBuilder.Create<Program>(args)
-    .WithAddFileConfiguration()
-    .WithAddFileConfigurationOptions(options =>
+    .WithAddFileConfiguration(options =>
     {
         options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
     })

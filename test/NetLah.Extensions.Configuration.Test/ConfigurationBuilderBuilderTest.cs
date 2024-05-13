@@ -992,11 +992,10 @@ public class ConfigurationBuilderBuilderTest
                 "/AddFile:0=Add-File-Source/config.json",
                 "/AddFile:1=Add-File-Source/config.ini",
             })
-            .WithAddFileConfiguration(throwIfNotSupport: true)
-            .WithAddFileConfigurationOptions(options =>
+            .WithAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
-            })
+            }, throwIfNotSupport: true)
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1027,11 +1026,10 @@ public class ConfigurationBuilderBuilderTest
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
             })
-            .WithAddFileConfiguration(throwIfNotSupport: true)
-            .WithAddFileConfigurationOptions(options =>
+            .WithAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
-            })
+            }, throwIfNotSupport: true)
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1063,12 +1061,11 @@ public class ConfigurationBuilderBuilderTest
                 "/AddFile:1=Add-File-Source/config.json",
                 "/AddFile:2=Add-File-Source/config.xml",
             })
-            .WithAddFileConfiguration(throwIfNotSupport: true)
-            .WithAddFileConfigurationOptions(options =>
+            .WithAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
                 options.AddProvider(".xml", (builder, source) => builder.AddXmlFile(source.Path, source.Optional, source.ReloadOnChange));
-            })
+            }, throwIfNotSupport: true)
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1099,9 +1096,217 @@ public class ConfigurationBuilderBuilderTest
             new string[] {
                 "/configSrc:0=appsettings.Transform.json",
             })
-            .WithAddFileConfiguration("configSrc")
+            .WithAddFileConfiguration(null, "configSrc")
             .WithTransformConfiguration()
             .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+                "TransformConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+                null,
+            });
+
+        AssertProduction(configuration);
+        AssertTransform(configuration);
+    }
+
+    [Fact]
+    public void ConfigurationBuilder_AddFileConfigurationDevelopmentSecrets_NoSources()
+    {
+#pragma warning disable 0618
+        var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
+            .WithEnvironment("Development")
+            .Builder
+            .AddAddFileConfiguration()
+            .Build();
+#pragma warning restore 0618
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Development.json",
+                "secrets.json",
+                null,
+                null,
+            });
+
+        AssertDevelopment(configuration);
+    }
+
+    [Fact]
+    public void ConfigurationBuilder_AddFileConfigurationProduction_configJson()
+    {
+#pragma warning disable 0618
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/AddFile:0=Add-File-Source/config.json"
+            })
+            .Builder
+            .AddAddFileConfiguration()
+            .Build();
+#pragma warning restore 0618
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationBuilder_AddFileConfigurationProduction_configJsonIni()
+    {
+#pragma warning disable 0618
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/AddFile:0=Add-File-Source/config.json",
+                "/AddFile:1=Add-File-Source/config.ini",
+            })
+            .Builder
+            .AddAddFileConfiguration(options =>
+            {
+                options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
+            }, throwIfNotSupport: true)
+            .Build();
+#pragma warning restore 0618
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Add-File-Source/config.ini", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Add-File-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationBuilder_AddFileConfigurationProduction_configIniJson()
+    {
+#pragma warning disable 0618
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/AddFile:0=Add-File-Source/config.ini",
+                "/AddFile:1=Add-File-Source/config.json",
+            })
+            .Builder
+            .AddAddFileConfiguration(options =>
+            {
+                options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
+            }, throwIfNotSupport: true)
+            .Build();
+#pragma warning restore 0618
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Add-File-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationBuilder_AddFileConfigurationProduction_configIniJsonXml()
+    {
+#pragma warning disable 0618
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/AddFile:0=Add-File-Source/config.ini",
+                "/AddFile:1=Add-File-Source/config.json",
+                "/AddFile:2=Add-File-Source/config.xml",
+            })
+            .Builder
+            .AddAddFileConfiguration(options =>
+            {
+                options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
+                options.AddProvider(".xml", (builder, source) => builder.AddXmlFile(source.Path, source.Optional, source.ReloadOnChange));
+            }, throwIfNotSupport: true)
+            .Build();
+#pragma warning restore 0618
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Add-File-Source/config.xml", configuration["MainKey"]);
+        Assert.Equal("config.json", configuration["JsonSection:Add-File-Source"]);
+        Assert.Equal("config.ini", configuration["IniSection:Add-File-Source"]);
+        Assert.Equal("config.xml", configuration["XmlSection:Add-File-Source"]);
+    }
+
+    [Fact]
+    public void ConfigurationBuilder_AddFileConfiguration_Transform()
+    {
+#pragma warning disable 0618
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/configSrc:0=appsettings.Transform.json",
+            })
+            .Builder
+            .AddAddFileConfiguration(null, "configSrc")
+            .AddTransformConfiguration()
+            .Build();
+#pragma warning restore 0618
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
