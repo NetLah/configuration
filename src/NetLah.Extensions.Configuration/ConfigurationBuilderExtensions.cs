@@ -35,23 +35,33 @@ public static class ConfigurationBuilderExtensions
     {
         return optionsBuilder == null
             ? throw new ArgumentNullException(nameof(optionsBuilder))
-            : configBuilder.AddAddFileConfiguration(options =>
-        {
-            options.ThrowIfNotSupport = optionsBuilder.ThrowIfNotSupport;
-        }, optionsBuilder.SectionKey);
+            : configBuilder.AddAddFileConfiguration(optionsBuilder, optionsBuilder.SectionKey);
     }
 
     public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, Action<AddFileConfigurationSourceOptions> configureOptions, string sectionKey = "AddFile")
         where TConfigurationBuilder : IConfigurationBuilder
     {
+        var options = new AddFileConfigurationSourceOptions();
+        configureOptions(options);
+
+        return configBuilder.AddAddFileConfiguration(options, sectionKey);
+    }
+
+    internal static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, AddFileConfigurationSourceOptions options, string sectionKey)
+      where TConfigurationBuilder : IConfigurationBuilder
+    {
+        if (sectionKey == null)
+        {
+            throw new ArgumentNullException(nameof(sectionKey));
+        }
+
         var configuration = configBuilder is IConfigurationRoot configurationRoot
            ? configurationRoot
            : configBuilder.Build();
 
         var configurationSection = configuration.GetSection(sectionKey);
 
-        var options = new AddFileConfigurationSourceOptions(configurationSection);
-        configureOptions(options);
+        options.ConfigurationSection = configurationSection;
 
         return configBuilder.AddAddFileConfiguration(options);
     }

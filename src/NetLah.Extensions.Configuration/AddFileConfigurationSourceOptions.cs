@@ -4,12 +4,7 @@ namespace NetLah.Extensions.Configuration;
 
 public class AddFileConfigurationSourceOptions
 {
-    public AddFileConfigurationSourceOptions(IConfigurationSection configurationSection)
-    {
-        ConfigurationSection = configurationSection;
-    }
-
-    public IConfigurationSection ConfigurationSection { get; set; }
+    public IConfigurationSection ConfigurationSection { get; set; } = null!;
 
     public bool? ThrowIfNotSupport { get; set; }
 }

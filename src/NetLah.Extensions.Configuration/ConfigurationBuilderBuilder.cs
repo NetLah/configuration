@@ -177,10 +177,9 @@ public sealed class ConfigurationBuilderBuilder
         {
             _configurePostConfigActions.Add(ConfigureAddFile);
         }
-        _addFile = new AddFileConfigurationSourceOptionsBuilder(sectionKey)
-        {
-            ThrowIfNotSupport = throwIfNotSupport,
-        };
+        _addFile ??= new AddFileConfigurationSourceOptionsBuilder();
+        _addFile.SectionKey = sectionKey;
+        _addFile.ThrowIfNotSupport = throwIfNotSupport;
         return ResetBuilder();
     }
 
