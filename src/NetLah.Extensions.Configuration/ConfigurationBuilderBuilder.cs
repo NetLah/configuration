@@ -21,6 +21,7 @@ public sealed class ConfigurationBuilderBuilder
     private BuilderOrManager? _builderOrManager;
     private IConfiguration? _configuration;
     private IEnumerable<KeyValuePair<string, string?>>? _initialData;
+    private AddFileConfigurationSourceOptionsBuilder? _addFile;
 
     private BuilderOrManager ConfigureBuilder()
     {
@@ -172,7 +173,15 @@ public sealed class ConfigurationBuilderBuilder
 
     public ConfigurationBuilderBuilder WithAddFileConfiguration(string sectionKey = "AddFile", bool? throwIfNotSupport = null)
     {
-        return WithAddPostConfiguration(builder => builder.AddAddFileConfiguration(sectionKey, throwIfNotSupport));
+        if (!_configurePostConfigActions.Contains(ConfigureAddFile))
+        {
+            _configurePostConfigActions.Add(ConfigureAddFile);
+        }
+        _addFile = new AddFileConfigurationSourceOptionsBuilder(sectionKey)
+        {
+            ThrowIfNotSupport = throwIfNotSupport,
+        };
+        return ResetBuilder();
     }
 
     public ConfigurationBuilderBuilder WithTransformConfiguration(string sectionKey = "Transform")
@@ -193,4 +202,12 @@ public sealed class ConfigurationBuilderBuilder
     public static ConfigurationBuilderBuilder Create(string[]? args = null)
         => new ConfigurationBuilderBuilder()
             .WithCommandLines(args);
+
+    private void ConfigureAddFile(IConfigurationBuilder builder)
+    {
+        if (_addFile != null)
+        {
+            builder.AddAddFileConfiguration(_addFile);
+        }
+    }
 }

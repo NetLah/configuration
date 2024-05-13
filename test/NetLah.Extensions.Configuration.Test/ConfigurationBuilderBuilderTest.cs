@@ -941,14 +941,14 @@ public class ConfigurationBuilderBuilderTest
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
-                "ChainedConfigurationProvider",
                 "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
             }, new[] {
                 "appsettings.json",
                 "appsettings.Development.json",
-                null,
                 "secrets.json",
+                null,
                 null,
             });
 

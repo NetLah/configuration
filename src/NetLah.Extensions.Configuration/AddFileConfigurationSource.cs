@@ -11,24 +11,27 @@ namespace NetLah.Extensions.Configuration;
 
 public class AddFileConfigurationSource : IConfigurationSource
 {
-    private readonly IConfigurationSection _configurationSection;
-    private readonly bool? _throwIfNotSupport;
+    private readonly AddFileConfigurationSourceOptions _options;
     private readonly AddFileOptions _defaultOptions;
     private string? _lastAddFileState;
     private IConfigurationRoot? _lastConfiguration;
 
-    public AddFileConfigurationSource(IConfigurationSection configurationSection, bool? throwIfNotSupport = null)
+    public AddFileConfigurationSource(AddFileConfigurationSourceOptions options)
     {
-        _configurationSection = configurationSection ?? throw new ArgumentNullException(nameof(configurationSection));
-        _throwIfNotSupport = throwIfNotSupport;
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        if (options.ConfigurationSection == null)
+        {
+            throw new ArgumentNullException(nameof(options.ConfigurationSection));
+        }
         _defaultOptions = new AddFileOptions { Optional = true, ReloadOnChange = true };
     }
 
     public IConfigurationProvider Build(IConfigurationBuilder builder)
     {
         var logger = Helper.GetLogger();
+        var configurationSection = _options.ConfigurationSection;
 
-        var settingLines = _configurationSection.AsEnumerable()
+        var settingLines = configurationSection.AsEnumerable()
             .OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase)
             .Select(kv => $"{kv.Key}={kv.Value}")
             .ToArray();
@@ -45,7 +48,7 @@ public class AddFileConfigurationSource : IConfigurationSource
 #endif
             configurationBuilder.SetFileProvider(builder.GetFileProvider());
 
-            foreach (var item in _configurationSection.GetChildren())
+            foreach (var item in configurationSection.GetChildren())
             {
                 if (item.Value == null && item["Type"] is { } typeValue1)
                 {
@@ -69,7 +72,7 @@ public class AddFileConfigurationSource : IConfigurationSource
                 }
             }
 
-            foreach (var item in _configurationSection.GetChildren())
+            foreach (var item in configurationSection.GetChildren())
             {
                 if (item.Value is { } value1)
                 {
@@ -128,12 +131,12 @@ public class AddFileConfigurationSource : IConfigurationSource
                 {
                     if (source.IsEnableLogging())
                     {
-                        logger.LogError("AddFile is not supported file extension {extension} of file {sourceFile}", ext, source.Path);
+                        logger.LogError("AddFile is not supported file extension {extension} with {sourceFile}", ext, source.Path);
                     }
 
-                    if (_defaultOptions.ThrowIfNotSupport ?? _throwIfNotSupport ?? false)
+                    if (_defaultOptions.ThrowIfNotSupport ?? _options.ThrowIfNotSupport ?? false)
                     {
-                        throw new Exception($"AddFile is not supported file extension {ext}, only support .json, .ini and .xml. AddFile source {source.Path}");
+                        throw new Exception($"AddFile is not supported file extension {ext}, only support .json, .ini and .xml with file {source.Path}");
                     }
                 }
             }
