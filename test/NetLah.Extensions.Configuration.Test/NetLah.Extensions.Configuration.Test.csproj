@@ -14,8 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Add-File-Source/**" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="appsettings.*" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="New-Location\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="New-Location/*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

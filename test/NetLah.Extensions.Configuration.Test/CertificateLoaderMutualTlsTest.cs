@@ -44,18 +44,33 @@ public class CertificateLoaderMutualTlsTest
         }
     }
 
-
-
-
-    private static async void ClientServerAuthenticate(X509Certificate2 certificate)
+    private class PortBox
     {
+        private volatile int _port;
+
+        public int Port { get => _port; set => _port = value; }
+    }
+
+    private static void ClientServerAuthenticate(X509Certificate2 certificate)
+    {
+        const int port1 = 19000;
+        const int port2 = 19999;
         const string plainText = "Hello, world! こんにちは世界 ഹലോ വേൾഡ് Kαληµε´ρα κο´σµε";
         var plainMessage = Encoding.UTF8.GetBytes(plainText);
-        var port1 = 19000;
-        var port2 = 19999;
 
-        int FindPort(int port1, int port2)
+        var clientCompleted = new TaskCompletionSource<int>();
+        var serverInitialized = new TaskCompletionSource<int>();
+        Exception? clientFault = null;
+        Exception? serverFault = null;
+        string? clientReceived = null;
+        string? serverReceived = null;
+
+        async Task DoServer(PortBox port, CancellationToken token, Task taskWaitClientCompleted)
         {
+            var maxTry = 10;
+
+            // https://stackoverflow.com/questions/28548326/net-sslstream-with-client-certificate
+            // https://code-maze.com/csharp-task-run-vs-task-factory-startnew/
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
             var tcpListeners = ipGlobalProperties.GetActiveTcpListeners();
             var flags = new bool[port2 - port1 + 1];
@@ -65,100 +80,103 @@ public class CertificateLoaderMutualTlsTest
             {
                 if (IPAddress.IsLoopback(tcpListener.Address))
                 {
-                    for (var port = port1; port <= port2; port++)
+                    for (var port0 = port1; port0 <= port2; port0++)
                     {
-                        if (tcpListener.Port == port)
+                        if (tcpListener.Port == port0)
                         {
-                            flags[port - port1] = false;
+                            flags[port0 - port1] = false;
                         }
                     }
                 }
             }
 
-            for (var port = port1; port <= port2; port++)
+            for (var port0 = port1; port0 <= port2; port0++)
             {
-                if (flags[port - port1])
+                if (flags[port0 - port1])
                 {
-                    return port;
-                }
-            }
+                    maxTry--;
+                    TcpListener server = null;
+                    try
+                    {
+                        var server0 = new TcpListener(IPAddress.Loopback, port0);
+                        server0.Start();
+                        server = server0;
+                    }
+                    catch (Exception)
+                    {
+                        if (maxTry <= 0)
+                        {
+                            throw;
+                        }
+                        // try again if still not reach max try
+                    }
 
-            return -1;
-        }
+                    if (server != null)
+                    {
+                        port.Port = port0;
+                        await Task.Delay(100);
 
-        var port = FindPort(port1, port2);
-
-        // https://stackoverflow.com/questions/28548326/net-sslstream-with-client-certificate
-        // https://code-maze.com/csharp-task-run-vs-task-factory-startnew/
-
-        Assert.InRange(port, port1, port2);
-
-        var clientCompleted = new TaskCompletionSource<int>();
-        var serverInitialized = new TaskCompletionSource<int>();
-        Exception? clientFault = null;
-        Exception? serverFault = null;
-        string? clientReceived = null;
-        string? serverReceived = null;
-
-        async Task DoServer(int port, CancellationToken token, Task taskWaitClientCompleted)
-        {
-            var server = new TcpListener(IPAddress.Loopback, port);
-            try
-            {
-                server.Start();
-                serverInitialized.SetResult(0);
-                using var client = server.AcceptTcpClient();
+                        try
+                        {
+                            serverInitialized.SetResult(0);
+                            using var client = server.AcceptTcpClient();
 
 #if NETCOREAPP3_1
-                using var ssltrream = new SslStream(client.GetStream(), false, (s, cm, ch, p) => true);
-                ssltrream.AuthenticateAsServer(certificate, true, false);
+                            using var ssltrream = new SslStream(client.GetStream(), false, (s, cm, ch, p) => true);
+                            ssltrream.AuthenticateAsServer(certificate, true, false);
 #else
-                using var ssltrream = new SslStream(client.GetStream(), false);
-                ssltrream.AuthenticateAsServer(new SslServerAuthenticationOptions
-                {
-                    ClientCertificateRequired = true,
-                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                    AllowRenegotiation = true,
-                    EncryptionPolicy = EncryptionPolicy.RequireEncryption,
-                    RemoteCertificateValidationCallback = (s, cm, ch, p) => true,
-                    ServerCertificate = certificate,
-                });
+                            using var ssltrream = new SslStream(client.GetStream(), false);
+                            ssltrream.AuthenticateAsServer(new SslServerAuthenticationOptions
+                            {
+                                ClientCertificateRequired = true,
+                                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                                AllowRenegotiation = true,
+                                EncryptionPolicy = EncryptionPolicy.RequireEncryption,
+                                RemoteCertificateValidationCallback = (s, cm, ch, p) => true,
+                                ServerCertificate = certificate,
+                            });
 #endif
 
-                var array = new byte[4096];
-                var buffer = new Memory<byte>(array);
-                var len = await ssltrream.ReadAsync(buffer, token);
-                serverReceived = Encoding.UTF8.GetString(buffer[..len].Span);
+                            var array = new byte[4096];
+                            var buffer = new Memory<byte>(array);
+                            var len = await ssltrream.ReadAsync(buffer, token);
+                            serverReceived = Encoding.UTF8.GetString(buffer[..len].Span);
 
-                await ssltrream.WriteAsync(plainMessage, token);
+                            await ssltrream.WriteAsync(plainMessage, token);
 
 #if NETCOREAPP3_1 || NET5_0
-                taskWaitClientCompleted.Wait((int)TimeSpan.FromMinutes(2).TotalMilliseconds, token);
-                await Task.CompletedTask;
+                            taskWaitClientCompleted.Wait((int)TimeSpan.FromMinutes(2).TotalMilliseconds, token);
+                            await Task.CompletedTask;
 #else
-                await taskWaitClientCompleted.WaitAsync(TimeSpan.FromMinutes(2), token);
+                            await taskWaitClientCompleted.WaitAsync(TimeSpan.FromMinutes(2), token);
 #endif
 
-            }
-            catch (Exception ex)
-            {
-                serverFault = ex;
-            }
-            finally
-            {
-                server.Stop();
+                        }
+                        catch (Exception ex)
+                        {
+                            serverFault = ex;
+                        }
+                        finally
+                        {
+                            server.Stop();
+                        }
+                        break;
+                    }
+                }
             }
         }
 
-        async Task DoClient(int port, CancellationToken token, Task taskWaitServerInitialized)
+        async Task DoClient(PortBox port, CancellationToken token, Task taskWaitServerInitialized)
         {
             try
             {
                 await taskWaitServerInitialized;
                 await Task.Delay(TimeSpan.FromMilliseconds(10), token);
+                Assert.InRange(port.Port, port1, port2);
+
                 {
                     using TcpClient client = new();
-                    await client.ConnectAsync(IPAddress.Loopback, port);
+                    await client.ConnectAsync(IPAddress.Loopback, port.Port);
 
 #if NETCOREAPP3_1
                     using var ssltrream = new SslStream(client.GetStream(), false, (s, cm, ch, p) => true);
@@ -191,6 +209,7 @@ public class CertificateLoaderMutualTlsTest
         }
 
         var cts = new CancellationTokenSource();
+        var port = new PortBox();
 
         var clientWork = Task.Run(() => DoClient(port, cts.Token, serverInitialized.Task));
         var serverWork = Task.Run(() => DoServer(port, cts.Token, clientCompleted.Task));

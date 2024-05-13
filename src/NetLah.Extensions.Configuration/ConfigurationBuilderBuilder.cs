@@ -1,35 +1,44 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
+#if NETSTANDARD
+// todo: rename to TConfigurationBuilder
+using BuilderOrManager = Microsoft.Extensions.Configuration.IConfigurationBuilder;
+#else
+using BuilderOrManager = Microsoft.Extensions.Configuration.ConfigurationManager;
+#endif
 
 namespace NetLah.Extensions.Configuration;
 
 public sealed class ConfigurationBuilderBuilder
 {
     private readonly List<Action<IConfigurationBuilder>> _configureConfigActions = new();
+    private readonly List<Action<IConfigurationBuilder>> _configurePostConfigActions = new();
     private string[]? _args;
     private Assembly? _assembly;
     private string? _basePath;
     private string? _environmentName;
-    private IConfigurationBuilder? _configurationBuilder;
-    private IConfiguration? _hostConfig;
+    private BuilderOrManager? _builderOrManager;
     private IConfiguration? _configuration;
     private IEnumerable<KeyValuePair<string, string?>>? _initialData;
+    private AddFileConfigurationSourceOptionsBuilder? _addFileOptionsBuilder;
 
-    private IConfigurationBuilder ConfigureBuilder()
+    private BuilderOrManager ConfigureBuilder()
     {
-        if (_environmentName == null && _hostConfig == null)
+#if NETSTANDARD
+        var configBuilder = new ConfigurationBuilder();
+        configBuilder.AddInMemoryCollection();
+#else
+        var configBuilder = new BuilderOrManager();
+#endif
+        configBuilder
+            .AddEnvironmentVariables(prefix: "DOTNET_")
+            .AddEnvironmentVariables(prefix: "ASPNETCORE_");
+
+        if (_environmentName == null)
         {
-            var hostConfigBuilder = new ConfigurationBuilder()
-                 .AddInMemoryCollection()
-                 .AddEnvironmentVariables(prefix: "DOTNET_")
-                 .AddEnvironmentVariables(prefix: "ASPNETCORE_");
-            _hostConfig = hostConfigBuilder.Build();
+            _environmentName = ((IConfigurationBuilder)configBuilder).Build()[HostDefaults.EnvironmentKey];
         }
-
-        _environmentName ??= _hostConfig?[HostDefaults.EnvironmentKey];
-
-        var configBuilder = (IConfigurationBuilder)new ConfigurationBuilder();
 
         if (!string.IsNullOrEmpty(_basePath))
         {
@@ -37,21 +46,20 @@ public sealed class ConfigurationBuilderBuilder
         }
 
         if (_configuration is { } configuration)
+        {
             configBuilder.AddConfiguration(configuration, shouldDisposeConfiguration: false);
+        }
 
         if (_initialData is { } initialData)
-            configBuilder.AddInMemoryCollection(initialData);
-
-        if (_hostConfig != null)
         {
-            configBuilder.AddConfiguration(_hostConfig, shouldDisposeConfiguration: true);
+            configBuilder.AddInMemoryCollection(initialData);
         }
 
         configBuilder
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-        foreach (Action<IConfigurationBuilder> buildAction in _configureConfigActions)
+        foreach (var buildAction in _configureConfigActions)
         {
             buildAction(configBuilder);
         }
@@ -67,12 +75,17 @@ public sealed class ConfigurationBuilderBuilder
             configBuilder.AddCommandLine(args);
         }
 
+        foreach (var buildAction in _configurePostConfigActions)
+        {
+            buildAction(configBuilder);
+        }
+
         return configBuilder;
     }
 
     private ConfigurationBuilderBuilder ResetBuilder()
     {
-        _configurationBuilder = null;
+        _builderOrManager = null;
         return this;
     }
 
@@ -80,13 +93,29 @@ public sealed class ConfigurationBuilderBuilder
 
     public string? ApplicationName => _assembly?.FullName;
 
-    public IConfigurationBuilder Builder => _configurationBuilder ??= ConfigureBuilder();
+#if NETSTANDARD
+    public IConfigurationBuilder Builder => _builderOrManager ??= ConfigureBuilder();
 
     public IConfigurationRoot Build() => Builder.Build();
+#else
+    public ConfigurationManager Manager => _builderOrManager ??= ConfigureBuilder();
+
+    [Obsolete("This property is obsolete. Use " + nameof(Manager) + " instead.")]
+    public IConfigurationBuilder Builder => Manager;
+
+    [Obsolete("This method is obsolete. Use property " + nameof(Manager) + " instead.")]
+    public IConfigurationRoot Build() => Manager;
+#endif
 
     public ConfigurationBuilderBuilder WithAddConfiguration(Action<IConfigurationBuilder> addConfiguration)
     {
         _configureConfigActions.Add(addConfiguration);
+        return ResetBuilder();
+    }
+
+    public ConfigurationBuilderBuilder WithAddPostConfiguration(Action<IConfigurationBuilder> addConfiguration)
+    {
+        _configurePostConfigActions.Add(addConfiguration);
         return ResetBuilder();
     }
 
@@ -109,7 +138,10 @@ public sealed class ConfigurationBuilderBuilder
     public ConfigurationBuilderBuilder WithClearAddedConfiguration(bool clear = true)
     {
         if (clear)
+        {
             _configureConfigActions.Clear();
+        }
+
         return ResetBuilder();
     }
 
@@ -139,6 +171,34 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
+    public ConfigurationBuilderBuilder WithAddFileConfiguration(string sectionKey = "AddFile", bool? throwIfNotSupport = null)
+    {
+        if (!_configurePostConfigActions.Contains(ConfigureAddFile))
+        {
+            _configurePostConfigActions.Add(ConfigureAddFile);
+        }
+        _addFileOptionsBuilder ??= new AddFileConfigurationSourceOptionsBuilder();
+        _addFileOptionsBuilder.SectionKey = sectionKey;
+        _addFileOptionsBuilder.ThrowIfNotSupport = throwIfNotSupport;
+        return ResetBuilder();
+    }
+
+    public ConfigurationBuilderBuilder WithAddFileConfigurationOptions(Action<AddFileConfigurationSourceOptions> configureOptions)
+    {
+        if (configureOptions == null)
+        {
+            throw new ArgumentNullException(nameof(configureOptions));
+        }
+        _addFileOptionsBuilder ??= new AddFileConfigurationSourceOptionsBuilder();
+        configureOptions(_addFileOptionsBuilder);
+        return ResetBuilder();
+    }
+
+    public ConfigurationBuilderBuilder WithTransformConfiguration(string sectionKey = "Transform")
+    {
+        return WithAddPostConfiguration(builder => builder.AddTransformConfiguration(sectionKey));
+    }
+
     public static ConfigurationBuilderBuilder Create<TStartup>(string[]? args = null)
         => new ConfigurationBuilderBuilder()
             .WithCommandLines(args)
@@ -152,4 +212,12 @@ public sealed class ConfigurationBuilderBuilder
     public static ConfigurationBuilderBuilder Create(string[]? args = null)
         => new ConfigurationBuilderBuilder()
             .WithCommandLines(args);
+
+    private void ConfigureAddFile(IConfigurationBuilder builder)
+    {
+        if (_addFileOptionsBuilder != null)
+        {
+            builder.AddAddFileConfiguration(_addFileOptionsBuilder);
+        }
+    }
 }

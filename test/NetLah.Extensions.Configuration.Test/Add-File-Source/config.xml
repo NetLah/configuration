@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <MainKey>Add-File-Source/config.xml</MainKey>
+  <XmlSection>
+    <Add-File-Source>config.xml</Add-File-Source>
+  </XmlSection>
+</configuration>
