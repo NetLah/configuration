@@ -24,6 +24,7 @@ public class AddFileConfigurationSource : IConfigurationSource
             throw new ArgumentNullException(nameof(options.ConfigurationSection));
         }
         _defaultOptions = new AddFileOptions { Optional = true, ReloadOnChange = true };
+        options.TryAddProvider(".json", JsonConfigurationExtensions.AddJsonFile);
     }
 
     public IConfigurationProvider Build(IConfigurationBuilder builder)
@@ -47,6 +48,7 @@ public class AddFileConfigurationSource : IConfigurationSource
             var configurationBuilder = new TConfigurationBuilder();
 #endif
             configurationBuilder.SetFileProvider(builder.GetFileProvider());
+            var supportedExtensions = string.Join(", ", _options.ConfigureAddFiles.Keys.OrderBy(k => k));
 
             foreach (var item in configurationSection.GetChildren())
             {
@@ -60,14 +62,7 @@ public class AddFileConfigurationSource : IConfigurationSource
                     }
                     else
                     {
-                        try
-                        {
-                            logger.LogError("AddFile unknown type entry {@entry}", item.AsEnumerable().Where(kv => kv.Key != item.Path).ToDictionary(kv => kv.Key[(item.Path.Length + 1)..], kv => kv.Value));
-                        }
-                        catch
-                        {
-                            // do nothing
-                        }
+                        logger.LogError("AddFile unknown type entry {@entry}", FormatConfigurationSection(item));
                     }
                 }
             }
@@ -104,39 +99,48 @@ public class AddFileConfigurationSource : IConfigurationSource
                 {
                     if (_defaultOptions.IsEnableLogging())
                     {
-                        logger.LogError("AddFile unknown entry {@entry}", item);
+                        logger.LogError("AddFile unknown entry {@entry}", FormatConfigurationSection(item));
                     }
+                }
+            }
+
+#if NET7_0_OR_GREATER
+            Dictionary<string, string?>?
+#else
+            Dictionary<string, string>?
+#endif
+            FormatConfigurationSection(IConfigurationSection configurationSection)
+            {
+                try
+                {
+                    return configurationSection.AsEnumerable()
+                        .Where(kv => kv.Key != configurationSection.Path)
+                        .ToDictionary(kv => kv.Key[(configurationSection.Path.Length + 1)..], kv => kv.Value);
+                }
+                catch
+                {
+                    return null;
                 }
             }
 
             void AddFile(AddFileSource source)
             {
                 var ext = Path.GetExtension(source.Path);
-                if (".json".Equals(ext, StringComparison.OrdinalIgnoreCase))
+                if (_options.ConfigureAddFiles.TryGetValue(ext, out var configureAddFile))
                 {
                     logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
-                    configurationBuilder.AddJsonFile(source.Path!, source.Optional, source.ReloadOnChange);
-                }
-                else if (".xml".Equals(ext, StringComparison.OrdinalIgnoreCase))
-                {
-                    logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
-                    configurationBuilder.AddXmlFile(source.Path!, source.Optional, source.ReloadOnChange);
-                }
-                else if (".ini".Equals(ext, StringComparison.OrdinalIgnoreCase))
-                {
-                    logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
-                    configurationBuilder.AddIniFile(source.Path!, source.Optional, source.ReloadOnChange);
+                    configureAddFile(configurationBuilder, source);
                 }
                 else
                 {
                     if (source.IsEnableLogging())
                     {
-                        logger.LogError("AddFile is not supported file extension {extension} with {sourceFile}", ext, source.Path);
+                        logger.LogError("AddFile is not supported file extension {extension}, only support {supportedExtensions} with {sourceFile}", ext, supportedExtensions, source.Path);
                     }
 
                     if (_defaultOptions.ThrowIfNotSupport ?? _options.ThrowIfNotSupport ?? false)
                     {
-                        throw new Exception($"AddFile is not supported file extension {ext}, only support .json, .ini and .xml with file {source.Path}");
+                        throw new Exception($"AddFile is not supported file extension {ext}, only support {supportedExtensions} with file {source.Path}");
                     }
                 }
             }

@@ -992,7 +992,11 @@ public class ConfigurationBuilderBuilderTest
                 "/AddFile:0=Add-File-Source/config.json",
                 "/AddFile:1=Add-File-Source/config.ini",
             })
-            .WithAddFileConfiguration()
+            .WithAddFileConfiguration(throwIfNotSupport: true)
+            .WithAddFileConfigurationOptions(options =>
+            {
+                options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
+            })
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1023,7 +1027,11 @@ public class ConfigurationBuilderBuilderTest
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
             })
-            .WithAddFileConfiguration()
+            .WithAddFileConfiguration(throwIfNotSupport: true)
+            .WithAddFileConfigurationOptions(options =>
+            {
+                options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
+            })
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -1055,7 +1063,12 @@ public class ConfigurationBuilderBuilderTest
                 "/AddFile:1=Add-File-Source/config.json",
                 "/AddFile:2=Add-File-Source/config.xml",
             })
-            .WithAddFileConfiguration()
+            .WithAddFileConfiguration(throwIfNotSupport: true)
+            .WithAddFileConfigurationOptions(options =>
+            {
+                options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
+                options.AddProvider(".xml", (builder, source) => builder.AddXmlFile(source.Path, source.Optional, source.ReloadOnChange));
+            })
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {

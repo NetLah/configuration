@@ -2,5 +2,5 @@
 
 public class AddFileSource : AddFileOptionsBase
 {
-    public string? Path { get; set; }
+    public string Path { get; set; } = null!;
 }

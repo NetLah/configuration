@@ -21,9 +21,20 @@ Console.WriteLine($"AssemblyTitle: {asmLib.Title}");
 Console.WriteLine($"Version:{asmLib.InformationalVersion} BuildTime:{asmLib.BuildTimestampLocal}; Framework:{asmLib.FrameworkName}");
 
 #if NET6_0_OR_GREATER
-var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Manager.AddAddFileConfiguration().AddTransformConfiguration();
+var configuration = ConfigurationBuilderBuilder.Create<Program>(args).Manager
+    .AddAddFileConfiguration(options =>
+    {
+        options.AddProvider(".ini", (builder, source) => builder.AddIniFile(source.Path, source.Optional, source.ReloadOnChange));
+    })
+    .AddTransformConfiguration();
 #else
-var configuration = ConfigurationBuilderBuilder.Create<Program>(args).WithAddFileConfiguration().WithTransformConfiguration().Build();
+var configuration = ConfigurationBuilderBuilder.Create<Program>(args)
+    .WithAddFileConfiguration()
+    .WithAddFileConfigurationOptions(options =>
+    {
+        options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
+    })
+    .WithTransformConfiguration().Build();
 #endif
 var defaultConnectionString = configuration.GetConnectionString("DefaultConnection");
 Console.WriteLine($"[TRACE] ConnectionString: {defaultConnectionString}");
@@ -37,7 +48,7 @@ File.WriteAllText("AddFile/appsettings.ini", @"
 NetLah.Extensions.Configuration = Trace
 ");
 await Task.Delay(700);
-Console.WriteLine($"[TRACE] Update file");
+Console.WriteLine($"[TRACE] Update file appsettings.ini");
 PrintConfiguration(serilogKey);
 PrintConfiguration("Serilog:MinimumLevel:Override:NetLah.Extensions.Configuration");
 

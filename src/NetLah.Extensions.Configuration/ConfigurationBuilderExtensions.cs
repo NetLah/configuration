@@ -41,6 +41,11 @@ public static class ConfigurationBuilderExtensions
     public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, Action<AddFileConfigurationSourceOptions> configureOptions, string sectionKey = "AddFile")
         where TConfigurationBuilder : IConfigurationBuilder
     {
+        if (configureOptions == null)
+        {
+            throw new ArgumentNullException(nameof(configureOptions));
+        }
+
         var options = new AddFileConfigurationSourceOptions();
         configureOptions(options);
 

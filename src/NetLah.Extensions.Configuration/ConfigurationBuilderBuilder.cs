@@ -21,7 +21,7 @@ public sealed class ConfigurationBuilderBuilder
     private BuilderOrManager? _builderOrManager;
     private IConfiguration? _configuration;
     private IEnumerable<KeyValuePair<string, string?>>? _initialData;
-    private AddFileConfigurationSourceOptionsBuilder? _addFile;
+    private AddFileConfigurationSourceOptionsBuilder? _addFileOptionsBuilder;
 
     private BuilderOrManager ConfigureBuilder()
     {
@@ -177,9 +177,20 @@ public sealed class ConfigurationBuilderBuilder
         {
             _configurePostConfigActions.Add(ConfigureAddFile);
         }
-        _addFile ??= new AddFileConfigurationSourceOptionsBuilder();
-        _addFile.SectionKey = sectionKey;
-        _addFile.ThrowIfNotSupport = throwIfNotSupport;
+        _addFileOptionsBuilder ??= new AddFileConfigurationSourceOptionsBuilder();
+        _addFileOptionsBuilder.SectionKey = sectionKey;
+        _addFileOptionsBuilder.ThrowIfNotSupport = throwIfNotSupport;
+        return ResetBuilder();
+    }
+
+    public ConfigurationBuilderBuilder WithAddFileConfigurationOptions(Action<AddFileConfigurationSourceOptions> configureOptions)
+    {
+        if (configureOptions == null)
+        {
+            throw new ArgumentNullException(nameof(configureOptions));
+        }
+        _addFileOptionsBuilder ??= new AddFileConfigurationSourceOptionsBuilder();
+        configureOptions(_addFileOptionsBuilder);
         return ResetBuilder();
     }
 
@@ -204,9 +215,9 @@ public sealed class ConfigurationBuilderBuilder
 
     private void ConfigureAddFile(IConfigurationBuilder builder)
     {
-        if (_addFile != null)
+        if (_addFileOptionsBuilder != null)
         {
-            builder.AddAddFileConfiguration(_addFile);
+            builder.AddAddFileConfiguration(_addFileOptionsBuilder);
         }
     }
 }
