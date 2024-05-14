@@ -53,11 +53,14 @@ public class MapConfigurationProvider(MapConfigurationSource source) : Configura
         void TryParse(string keyValue)
         {
             var pos = keyValue.IndexOf('=');
-            var key1 = keyValue[..pos];
-            var key2 = keyValue[(pos + 1)..];
-            if (configuration[key1] is { } value)
+            if (pos > 0 && pos < keyValue.Length - 1)
             {
-                Data[key2] = value;
+                var key1 = keyValue[..pos];
+                var key2 = keyValue[(pos + 1)..];
+                if (configuration[key1] is { } value)
+                {
+                    Data[key2] = value;
+                }
             }
         }
     }

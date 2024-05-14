@@ -62,9 +62,12 @@ public class TransformConfigurationProvider : ConfigurationProvider
         void TryParse(string prefix, string keyValue)
         {
             var pos = keyValue.IndexOf('=');
-            var key = keyValue[..pos];
-            var value = keyValue[(pos + 1)..];
-            Data[prefix + key] = value;
+            if (pos > 0 && pos < keyValue.Length - 1)
+            {
+                var key = keyValue[..pos];
+                var value = keyValue[(pos + 1)..];
+                Data[prefix + key] = value;
+            }
         }
     }
 }
