@@ -24,6 +24,23 @@ public static class ConfigurationBuilderExtensions
         return configBuilder;
     }
 
+    public static TConfigurationBuilder AddMapConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, string sectionKey = "MapConfiguration")
+        where TConfigurationBuilder : IConfigurationBuilder
+    {
+        if (string.IsNullOrWhiteSpace(sectionKey))
+        {
+            throw new ArgumentException($"{nameof(sectionKey)} is required", nameof(sectionKey));
+        }
+
+        var configuration = configBuilder is IConfigurationRoot configurationRoot
+            ? configurationRoot
+            : configBuilder.Build();
+
+        configBuilder.Add(new MapConfigurationSource(configuration, sectionKey));
+
+        return configBuilder;
+    }
+
     public static TConfigurationBuilder AddAddFileConfiguration<TConfigurationBuilder>(this TConfigurationBuilder configBuilder, Action<AddFileConfigurationSourceOptions>? configureOptions = null, string sectionKey = "AddFile", bool? throwIfNotSupport = null)
         where TConfigurationBuilder : IConfigurationBuilder
     {

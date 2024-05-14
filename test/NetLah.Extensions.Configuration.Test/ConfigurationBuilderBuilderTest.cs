@@ -94,12 +94,15 @@ public class ConfigurationBuilderBuilderTest
     {
         Assert.Equal("MainValue1", configuration["MainKey"]);
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("ProductionSubValue1", configuration["ProductionSection:SubKey"]);
+        Assert.Null(configuration["SecondaryKey"]);
     }
 
     private static void AssertDevelopment(IConfiguration configuration)
     {
         Assert.Equal("MainValue1", configuration["MainKey"]);
         Assert.Equal("EnvironmentDevelopmentValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("DevelopmentSubValue1", configuration["DevelopmentSection:SubKey"]);
     }
 
     private static void AssertCommandLines(IConfiguration configuration)
@@ -564,7 +567,9 @@ public class ConfigurationBuilderBuilderTest
                 null,
             });
 
-        AssertDevelopment(configuration2);
+        Assert.Equal("MainValue1", configuration2["MainKey"]);
+        Assert.Equal("EnvironmentDevelopmentValue1", configuration2["EnvironmentKey"]);
+        Assert.Null(configuration2["DevelopmentSection:SubKey"]);
         AssertCommandLines(configuration2);
     }
 
@@ -1433,4 +1438,60 @@ public class ConfigurationBuilderBuilderTest
         Assert.Equal("Key-Per-File/mainValue line0", configuration["MainKey"]);
         Assert.Equal("KeyPerFileSection__Add-File-Source.txt", configuration["KeyPerFileSection:Add-File-Source"]);
     }
+
+    [Fact]
+    public void EnvironmentNameMapConfiguration()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(["/CommandLineSection:SubKey=CommandLineSection-SubKeyValue"])
+            .WithEnvironment("Map")
+            .WithMapConfiguration()
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+                "MapConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Map.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("MainValue1", configuration["MainKey"]);
+        Assert.Equal("MainValue1", configuration["SecondaryKey"]);
+        Assert.Equal("CommandLineSection-SubKeyValue", configuration["CommandLineSection:SubKey"]);
+        Assert.Equal("CommandLineSection-SubKeyValue", configuration["MapSection:SubKey"]);
+    }
+
+    [Fact]
+    public void ConfigurationBuilder_EnvironmentNameMapConfiguration()
+    {
+        var configuration = CreateDefaultBuilder(["/CommandLineSection:SubKey=CommandLineSection-SubKeyValue"], "Map")
+            .AddMapConfiguration()
+            .Build();
+
+        AssertProviders(configuration, [
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+                "MapConfigurationProvider",
+            ], [
+                "appsettings.json",
+                "appsettings.Map.json",
+                null,
+                null,
+                null,
+            ]);
+
+        Assert.Equal("MainValue1", configuration["MainKey"]);
+        Assert.Equal("MainValue1", configuration["SecondaryKey"]);
+        Assert.Equal("CommandLineSection-SubKeyValue", configuration["CommandLineSection:SubKey"]);
+        Assert.Equal("CommandLineSection-SubKeyValue", configuration["MapSection:SubKey"]);
+    }
+
 }

@@ -189,6 +189,11 @@ public sealed class ConfigurationBuilderBuilder
         return WithAddPostConfiguration(builder => builder.AddTransformConfiguration(sectionKey));
     }
 
+    public ConfigurationBuilderBuilder WithMapConfiguration(string sectionKey = "MapConfiguration")
+    {
+        return WithAddPostConfiguration(builder => builder.AddMapConfiguration(sectionKey));
+    }
+
     public static ConfigurationBuilderBuilder Create<TStartup>(string[]? args = null)
         => new ConfigurationBuilderBuilder()
             .WithCommandLines(args)
