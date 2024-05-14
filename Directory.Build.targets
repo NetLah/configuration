@@ -188,6 +188,7 @@
     <PackageReference Update="Microsoft.Extensions.Configuration.FileExtensions" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.Configuration.Ini" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.Configuration.Json" Version="$(FrameworkVersion)" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.KeyPerFile" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.Configuration.UserSecrets" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.Configuration.Xml" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="$(FrameworkVersion)" />

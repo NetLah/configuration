@@ -52,18 +52,11 @@ public class AddFileConfigurationSource : IConfigurationSource
 
             foreach (var item in configurationSection.GetChildren())
             {
-                if (item.Value == null && item["Type"] is { } typeValue1)
+                if (item.Value == null && item["Provider"] is { } typeValue1 && ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase) || "DefaultSettings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase)))
                 {
-                    if ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase))
-                    {
-                        item.Bind(_defaultOptions);
-                        _defaultOptions.ResetCache();
-                        logger.LogInformation("AddFile default settings {@settings}", _defaultOptions);
-                    }
-                    else
-                    {
-                        logger.LogError("AddFile unknown type entry {@entry}", FormatConfigurationSection(item));
-                    }
+                    item.Bind(_defaultOptions);
+                    _defaultOptions.ResetCache();
+                    logger.LogInformation("AddFile default settings {@settings}", _defaultOptions);
                 }
             }
 
@@ -71,7 +64,8 @@ public class AddFileConfigurationSource : IConfigurationSource
             {
                 if (item.Value is { } value1)
                 {
-                    AddFile(new AddFileSource
+                    var extensionOrType = Path.GetExtension(value1);
+                    AddFile(extensionOrType, new AddFileSource
                     {
                         LoggingLevel = _defaultOptions.LoggingLevel,
                         Optional = _defaultOptions.Optional,
@@ -79,27 +73,34 @@ public class AddFileConfigurationSource : IConfigurationSource
                         Path = value1,
                     });
                 }
-                else if (item.Value == null && item["Type"] is { } typeValue1)
+                else if (item.Value == null && item["Provider"] is { } typeValue1 &&
+                    ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase) || "DefaultSettings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Settings and type already processed
                 }
-                else if (item["Path"] is { } path)
-                {
-                    var addFileSource = new AddFileSource
-                    {
-                        LoggingLevel = _defaultOptions.LoggingLevel,
-                        Optional = _defaultOptions.Optional,
-                        ReloadOnChange = _defaultOptions.ReloadOnChange
-                    };
-                    item.Bind(addFileSource);
-                    addFileSource.ResetCache();
-                    AddFile(addFileSource);
-                }
                 else
                 {
-                    if (_defaultOptions.IsEnableLogging())
+                    var provider = item["Provider"];
+                    var path = item["Path"];
+                    var extensionOrProvider = provider ?? Path.GetExtension(path);
+                    if (extensionOrProvider != null)
                     {
-                        logger.LogError("AddFile unknown entry {@entry}", FormatConfigurationSection(item));
+                        var addFileSource = new AddFileSource
+                        {
+                            LoggingLevel = _defaultOptions.LoggingLevel,
+                            Optional = _defaultOptions.Optional,
+                            ReloadOnChange = _defaultOptions.ReloadOnChange
+                        };
+                        item.Bind(addFileSource);
+                        addFileSource.OriginalPath = path;
+                        AddFile(extensionOrProvider, addFileSource);
+                    }
+                    else
+                    {
+                        if (_defaultOptions.IsEnableLogging())
+                        {
+                            logger.LogError("AddFile unknown entry {@entry}", FormatConfigurationSection(item));
+                        }
                     }
                 }
             }
@@ -123,24 +124,27 @@ public class AddFileConfigurationSource : IConfigurationSource
                 }
             }
 
-            void AddFile(AddFileSource source)
+            void AddFile(string extensionOrType, AddFileSource source)
             {
-                var ext = Path.GetExtension(source.Path);
-                if (_options.ConfigureAddFiles.TryGetValue(ext, out var configureAddFile))
+                if (_options.ConfigureAddFiles.TryGetValue(extensionOrType, out var configureAddFile))
                 {
+                    if (configureAddFile.ResolveAbsolute)
+                    {
+                        source.Path = Path.GetFullPath(source.Path);
+                    }
                     logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
-                    configureAddFile(configurationBuilder, source);
+                    configureAddFile.ConfigureAction(configurationBuilder, source);
                 }
                 else
                 {
                     if (source.IsEnableLogging())
                     {
-                        logger.LogError("AddFile is not supported file extension {extension}, only support {supportedExtensions} with {sourceFile}", ext, supportedExtensions, source.Path);
+                        logger.LogError("AddFile is not supported file extension/provider {extension}, only support {supportedExtensions} with {sourceFile}", extensionOrType, supportedExtensions, source.Path);
                     }
 
                     if (_defaultOptions.ThrowIfNotSupport ?? _options.ThrowIfNotSupport ?? false)
                     {
-                        throw new Exception($"AddFile is not supported file extension {ext}, only support {supportedExtensions} with file {source.Path}");
+                        throw new Exception($"AddFile is not supported file extension/provider {extensionOrType}, only support {supportedExtensions} with file {source.Path}");
                     }
                 }
             }

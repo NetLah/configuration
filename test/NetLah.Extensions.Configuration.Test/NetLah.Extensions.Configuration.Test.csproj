@@ -16,7 +16,8 @@
   <ItemGroup>
     <Content Include="Add-File-Source/**" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="appsettings.*" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="New-Location/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Key-Per-File/**" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="New-Location/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +29,8 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.KeyPerFile" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Xml" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

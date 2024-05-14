@@ -1276,9 +1276,11 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationProduction_configIniJsonXml()
     {
+#if NET6_0_OR_GREATER
 #pragma warning disable 0618
+#endif
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+        new string[] {
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
                 "/AddFile:2=Add-File-Source/config.xml",
@@ -1290,7 +1292,8 @@ public class ConfigurationBuilderBuilderTest
                 options.AddProvider(".xml", (builder, source) => builder.AddXmlFile(source.Path, source.Optional, source.ReloadOnChange));
             }, throwIfNotSupport: true)
             .Build();
-#pragma warning restore 0618
+#if NET6_0_OR_GREATER
+#endif
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -1343,4 +1346,40 @@ public class ConfigurationBuilderBuilderTest
         AssertTransform(configuration);
     }
 
+    [Fact]
+    public void AddFileConfigurationProduction_KeyPerFile()
+    {
+        var configuration = ConfigurationBuilderBuilder.Create(
+            new string[] {
+                "/AddFile:0:Provider=Key-per_file",
+                "/AddFile:0:Path=Key-Per-File"
+            })
+            .WithAddFileConfiguration(options =>
+            {
+#if NET5_0_OR_GREATER
+                options.AddProvider("key-per_file", KeyPerFileConfigurationBuilderExtensions.AddKeyPerFile, resolveAbsolute: true);
+#else
+                options.AddProvider("key-per_file", (builder, source) => builder.AddKeyPerFile(source.Path, source.Optional), resolveAbsolute: true);
+#endif
+            })
+            .BuildConfigurationRoot();
+
+        AssertProviders(configuration, new[] {
+                "JsonConfigurationProvider",
+                "JsonConfigurationProvider",
+                "ChainedConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            }, new[] {
+                "appsettings.json",
+                "appsettings.Production.json",
+                null,
+                null,
+                null,
+            });
+
+        Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
+        Assert.Equal("Key-Per-File/mainValue line0", configuration["MainKey"]);
+        Assert.Equal("KeyPerFileSection__Add-File-Source.txt", configuration["KeyPerFileSection:Add-File-Source"]);
+    }
 }
