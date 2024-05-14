@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Configuration.Ini;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.Configuration.Xml;
+using Microsoft.Extensions.Hosting;
+using System.Reflection;
 using Xunit;
 
 namespace NetLah.Extensions.Configuration.Test;
@@ -15,6 +17,39 @@ public class ConfigurationBuilderBuilderTest
         ["Key1"] = "Value2",
         ["Key3:Sub4"] = "Value5",
     };
+
+    private IConfigurationBuilder CreateDefaultBuilder(string[]? args = null, string? environmentName = null, Assembly? assembly = null, Type? type = null, string? basePath = null)
+    {
+        environmentName ??= Environments.Production;
+        assembly ??= type?.Assembly;
+
+        var builder = new ConfigurationBuilder();
+
+        if (!string.IsNullOrEmpty(basePath))
+        {
+            builder.SetBasePath(basePath);
+        }
+
+        builder.AddInMemoryCollection()
+            .AddEnvironmentVariables(prefix: "DOTNET_")
+            .AddEnvironmentVariables(prefix: "ASPNETCORE_")
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
+
+        if (assembly != null && string.Equals(environmentName, Environments.Development, StringComparison.OrdinalIgnoreCase))
+        {
+            builder.AddUserSecrets(assembly, optional: true, reloadOnChange: true);
+        }
+
+        builder.AddEnvironmentVariables();
+
+        if (args is { Length: > 0 } args1)
+        {
+            builder.AddCommandLine(args1);
+        }
+
+        return builder;
+    }
 
     private static void AssertProviders(IConfigurationRoot configuration, string[] providerNames, string?[]? extra = null)
     {
@@ -1123,13 +1158,9 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationDevelopmentSecrets_NoSources()
     {
-#pragma warning disable 0618
-        var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
-            .WithEnvironment("Development")
-            .Builder
+        var configuration = CreateDefaultBuilder(environmentName: "Development", type: typeof(ConfigurationBuilderBuilderTest))
             .AddAddFileConfiguration()
             .Build();
-#pragma warning restore 0618
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -1151,15 +1182,11 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationProduction_configJson()
     {
-#pragma warning disable 0618
-        var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+        var configuration = CreateDefaultBuilder(new string[] {
                 "/AddFile:0=Add-File-Source/config.json"
             })
-            .Builder
             .AddAddFileConfiguration()
             .Build();
-#pragma warning restore 0618
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -1183,19 +1210,15 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationProduction_configJsonIni()
     {
-#pragma warning disable 0618
-        var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+        var configuration = CreateDefaultBuilder(new string[] {
                 "/AddFile:0=Add-File-Source/config.json",
                 "/AddFile:1=Add-File-Source/config.ini",
             })
-            .Builder
             .AddAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
             }, throwIfNotSupport: true)
             .Build();
-#pragma warning restore 0618
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -1220,19 +1243,15 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationProduction_configIniJson()
     {
-#pragma warning disable 0618
-        var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+        var configuration = CreateDefaultBuilder(new string[] {
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
             })
-            .Builder
             .AddAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
             }, throwIfNotSupport: true)
             .Build();
-#pragma warning restore 0618
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
@@ -1297,16 +1316,12 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfiguration_Transform()
     {
-#pragma warning disable 0618
-        var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+        var configuration = CreateDefaultBuilder(new string[] {
                 "/configSrc:0=appsettings.Transform.json",
             })
-            .Builder
             .AddAddFileConfiguration(null, "configSrc")
             .AddTransformConfiguration()
             .Build();
-#pragma warning restore 0618
 
         AssertProviders(configuration, new[] {
                 "JsonConfigurationProvider",
