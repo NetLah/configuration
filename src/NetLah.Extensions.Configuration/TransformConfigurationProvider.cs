@@ -1,17 +1,38 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 
 namespace NetLah.Extensions.Configuration;
 
 public class TransformConfigurationProvider : ConfigurationProvider
 {
     private readonly IConfigurationSection _configurationSection;
+    private object? _lock = null;
+    private IChangeToken? _token;
 
     public TransformConfigurationProvider(IConfigurationSection configurationSection)
     {
         _configurationSection = configurationSection;
     }
 
+    private void OnChange(object? obj)
+    {
+        Data.Clear();
+        InternalLoad();
+        OnReload();
+    }
+
     public override void Load()
+    {
+        InternalLoad();
+
+        if (Interlocked.CompareExchange(ref _lock, new object(), null) == null)
+        {
+            _token = _configurationSection.GetReloadToken();
+            _token.RegisterChangeCallback(OnChange, this);
+        }
+    }
+
+    private void InternalLoad()
     {
         foreach (var item in _configurationSection.GetChildren())
         {
@@ -37,13 +58,13 @@ public class TransformConfigurationProvider : ConfigurationProvider
                 }
             }
         }
-    }
 
-    private void TryParse(string prefix, string keyValue)
-    {
-        var pos = keyValue.IndexOf('=');
-        var key = keyValue[..pos];
-        var value = keyValue[(pos + 1)..];
-        Data[prefix + key] = value;
+        void TryParse(string prefix, string keyValue)
+        {
+            var pos = keyValue.IndexOf('=');
+            var key = keyValue[..pos];
+            var value = keyValue[(pos + 1)..];
+            Data[prefix + key] = value;
+        }
     }
 }
