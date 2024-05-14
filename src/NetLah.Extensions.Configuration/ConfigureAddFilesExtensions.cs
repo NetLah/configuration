@@ -6,6 +6,13 @@ public delegate IConfigurationBuilder AddFileDelegate(IConfigurationBuilder buil
 
 public static class ConfigureAddFilesExtensions
 {
+    public static TConfigureAddFiles AddHandler<TConfigureAddFiles>(this TConfigureAddFiles configureAddFiles, Action<AddFileContext> handler)
+        where TConfigureAddFiles : IConfigureAddFiles
+    {
+        configureAddFiles.Handlers.Add(handler);
+        return configureAddFiles;
+    }
+
     public static TConfigureAddFiles AddProvider<TConfigureAddFiles>(this TConfigureAddFiles configureAddFiles, string fileExtension, AddFileDelegate addFile, bool resolveAbsolute = false)
         where TConfigureAddFiles : IConfigureAddFiles
     {

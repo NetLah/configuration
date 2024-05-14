@@ -7,6 +7,8 @@ public delegate void ConfigureAddFileDelegate(IConfigurationBuilder builder, Add
 public interface IConfigureAddFiles
 {
     IDictionary<string, ConfigureAddFileOptions> ConfigureAddFiles { get; }
+
+    List<Action<AddFileContext>> Handlers { get; }
 }
 
 public class ConfigureAddFileOptions
@@ -19,6 +21,8 @@ public class ConfigureAddFileOptions
 public class AddFileConfigurationSourceOptions : IConfigureAddFiles
 {
     public IDictionary<string, ConfigureAddFileOptions> ConfigureAddFiles { get; } = new Dictionary<string, ConfigureAddFileOptions>(StringComparer.OrdinalIgnoreCase);
+
+    public List<Action<AddFileContext>> Handlers { get; } = new List<Action<AddFileContext>>();
 
     public string SectionKey { get; set; } = string.Empty;
 

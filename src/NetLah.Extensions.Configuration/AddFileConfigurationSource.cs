@@ -13,6 +13,7 @@ public class AddFileConfigurationSource : IConfigurationSource
 {
     private readonly AddFileConfigurationSourceOptionsBuilder _options;
     private readonly AddFileOptions _defaultOptions;
+    private readonly IEnumerable<Action<AddFileContext>> _handlers;
     private string? _lastAddFileState;
     private IConfigurationRoot? _lastConfiguration;
 
@@ -25,6 +26,7 @@ public class AddFileConfigurationSource : IConfigurationSource
         }
         _defaultOptions = new AddFileOptions { Optional = true, ReloadOnChange = true };
         options.TryAddProvider(".json", JsonConfigurationExtensions.AddJsonFile);
+        _handlers = new[] { DefaultAddFileByProvider }.Concat(_options.Handlers);
     }
 
     public IConfigurationProvider Build(IConfigurationBuilder builder)
@@ -62,45 +64,76 @@ public class AddFileConfigurationSource : IConfigurationSource
 
             foreach (var item in configurationSection.GetChildren())
             {
+                var context = new AddFileContext
+                {
+                    Configuration = item,
+                    ConfigurationBuilder = configurationBuilder,
+                    Logger = logger,
+                    SupportedExtensions = supportedExtensions,
+                    IsProcessed = false,
+                };
+
+                var processed = false;
+
                 if (item.Value is { } value1)
                 {
-                    var extensionOrType = Path.GetExtension(value1);
-                    AddFile(extensionOrType, new AddFileSource
+                    var extensionOrProvider = Path.GetExtension(value1);
+                    context.Provider = extensionOrProvider;
+                    context.Source = new AddFileSource
                     {
                         LoggingLevel = _defaultOptions.LoggingLevel,
                         Optional = _defaultOptions.Optional,
                         ReloadOnChange = _defaultOptions.ReloadOnChange,
                         Path = value1,
-                    });
+                        OriginalPath = value1,
+                    };
                 }
                 else if (item.Value == null && item["Provider"] is { } typeValue1 &&
                     ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase) || "DefaultSettings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Settings and type already processed
+                    processed = true;
                 }
                 else
                 {
                     var provider = item["Provider"];
                     var path = item["Path"];
                     var extensionOrProvider = provider ?? Path.GetExtension(path);
-                    if (extensionOrProvider != null)
+                    var addFileSource = new AddFileSource
                     {
-                        var addFileSource = new AddFileSource
-                        {
-                            LoggingLevel = _defaultOptions.LoggingLevel,
-                            Optional = _defaultOptions.Optional,
-                            ReloadOnChange = _defaultOptions.ReloadOnChange
-                        };
-                        item.Bind(addFileSource);
-                        addFileSource.OriginalPath = path;
-                        AddFile(extensionOrProvider, addFileSource);
-                    }
-                    else
+                        LoggingLevel = _defaultOptions.LoggingLevel,
+                        Optional = _defaultOptions.Optional,
+                        ReloadOnChange = _defaultOptions.ReloadOnChange
+                    };
+                    item.Bind(addFileSource);
+                    addFileSource.OriginalPath = addFileSource.Path;
+                    context.Provider = extensionOrProvider;
+                    context.Source = addFileSource;
+                }
+
+                if (!processed)
+                {
+                    foreach (var handler in _handlers)
                     {
-                        if (_defaultOptions.IsEnableLogging())
+                        handler(context);
+                        if (context.IsProcessed)
                         {
-                            logger.LogError("AddFile unknown entry {@entry}", FormatConfigurationSection(item));
+                            processed = true;
+                            break;
                         }
+                    }
+                }
+
+                if (!processed)
+                {
+                    if (_defaultOptions.IsEnableLogging())
+                    {
+                        logger.LogError("AddFile unknown entry {@entry}", FormatConfigurationSection(item));
+                    }
+
+                    if (_defaultOptions.ThrowIfNotSupport ?? _options.ThrowIfNotSupport ?? false)
+                    {
+                        throw new Exception($"AddFile is not supported file extension/provider {context.Provider}, only support {context.SupportedExtensions} with file {context.Source.Path}");
                     }
                 }
             }
@@ -124,31 +157,6 @@ public class AddFileConfigurationSource : IConfigurationSource
                 }
             }
 
-            void AddFile(string extensionOrType, AddFileSource source)
-            {
-                if (_options.ConfigureAddFiles.TryGetValue(extensionOrType, out var configureAddFile))
-                {
-                    if (configureAddFile.ResolveAbsolute)
-                    {
-                        source.Path = Path.GetFullPath(source.Path);
-                    }
-                    logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", source.Path);
-                    configureAddFile.ConfigureAction(configurationBuilder, source);
-                }
-                else
-                {
-                    if (source.IsEnableLogging())
-                    {
-                        logger.LogError("AddFile is not supported file extension/provider {extension}, only support {supportedExtensions} with {sourceFile}", extensionOrType, supportedExtensions, source.Path);
-                    }
-
-                    if (_defaultOptions.ThrowIfNotSupport ?? _options.ThrowIfNotSupport ?? false)
-                    {
-                        throw new Exception($"AddFile is not supported file extension/provider {extensionOrType}, only support {supportedExtensions} with file {source.Path}");
-                    }
-                }
-            }
-
 #if NETSTANDARD
             configuration = configurationBuilder.Build();
 #else
@@ -168,5 +176,24 @@ public class AddFileConfigurationSource : IConfigurationSource
             Configuration = configuration,
             ShouldDisposeConfiguration = false,
         });
+    }
+
+    private void DefaultAddFileByProvider(AddFileContext context)
+    {
+        var source = context.Source;
+        if (context.Provider is { } provider
+            && !string.IsNullOrWhiteSpace(provider)
+            && source.OriginalPath is { } path
+            && !string.IsNullOrWhiteSpace(path)
+            && _options.ConfigureAddFiles.TryGetValue(provider, out var configureAddFile))
+        {
+            context.IsProcessed = true;
+            if (configureAddFile.ResolveAbsolute)
+            {
+                source.Path = path = Path.GetFullPath(path);
+            }
+            context.Logger.Log(source.GetLogLevel(), "Add configuration file {filePath}", path);
+            configureAddFile.ConfigureAction(context.ConfigurationBuilder, source);
+        }
     }
 }
