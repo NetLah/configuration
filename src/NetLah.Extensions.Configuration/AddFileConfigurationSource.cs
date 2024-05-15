@@ -51,22 +51,23 @@ public class AddFileConfigurationSource : IConfigurationSource
 #endif
             configurationBuilder.SetFileProvider(builder.GetFileProvider());
             var supportedExtensions = string.Join(", ", _options.ConfigureAddFiles.Keys.OrderBy(k => k));
+            var configSections = configurationSection.GetChildren().ToArray();
 
-            foreach (var item in configurationSection.GetChildren())
+            foreach (var configSection in configSections)
             {
-                if (item.Value == null && item["Provider"] is { } typeValue1 && ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase) || "DefaultSettings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase)))
+                if (configSection.Value == null && configSection["Provider"] is { } typeValue1 && ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase) || "DefaultSettings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase)))
                 {
-                    item.Bind(_defaultOptions);
+                    configSection.Bind(_defaultOptions);
                     _defaultOptions.ResetCache();
                     logger.LogInformation("AddFile default settings {@settings}", _defaultOptions);
                 }
             }
 
-            foreach (var item in configurationSection.GetChildren())
+            foreach (var configSection in configSections)
             {
                 var context = new AddFileContext
                 {
-                    Configuration = item,
+                    Configuration = configSection,
                     ConfigurationBuilder = configurationBuilder,
                     Logger = logger,
                     SupportedExtensions = supportedExtensions,
@@ -75,7 +76,7 @@ public class AddFileConfigurationSource : IConfigurationSource
 
                 var processed = false;
 
-                if (item.Value is { } value1)
+                if (configSection.Value is { } value1)
                 {
                     var extensionOrProvider = Path.GetExtension(value1);
                     context.Provider = extensionOrProvider;
@@ -88,7 +89,7 @@ public class AddFileConfigurationSource : IConfigurationSource
                         OriginalPath = value1,
                     };
                 }
-                else if (item.Value == null && item["Provider"] is { } typeValue1 &&
+                else if (configSection.Value == null && configSection["Provider"] is { } typeValue1 &&
                     ("Settings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase) || "DefaultSettings".Equals(typeValue1, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Settings and type already processed
@@ -96,8 +97,8 @@ public class AddFileConfigurationSource : IConfigurationSource
                 }
                 else
                 {
-                    var provider = item["Provider"];
-                    var path = item["Path"];
+                    var provider = configSection["Provider"];
+                    var path = configSection["Path"];
                     var extensionOrProvider = provider ?? Path.GetExtension(path);
                     var addFileSource = new AddFileSource
                     {
@@ -105,7 +106,7 @@ public class AddFileConfigurationSource : IConfigurationSource
                         Optional = _defaultOptions.Optional,
                         ReloadOnChange = _defaultOptions.ReloadOnChange
                     };
-                    item.Bind(addFileSource);
+                    configSection.Bind(addFileSource);
                     addFileSource.OriginalPath = addFileSource.Path;
                     context.Provider = extensionOrProvider;
                     context.Source = addFileSource;
@@ -128,7 +129,7 @@ public class AddFileConfigurationSource : IConfigurationSource
                 {
                     if (_defaultOptions.IsEnableLogging())
                     {
-                        logger.LogError("AddFile unknown entry {@entry}", FormatConfigurationSection(item));
+                        logger.LogError("AddFile unknown entry {@entry}", FormatConfigurationSection(configSection));
                     }
 
                     if (_defaultOptions.ThrowIfNotSupport ?? _options.ThrowIfNotSupport ?? false)
