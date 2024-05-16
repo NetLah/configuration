@@ -12,13 +12,13 @@ public class ConfigurationBuilderBuilderTest
 {
     private static string[] GetCommandLines() => new[] { "--CommandLineKey", "CommandLineValue1", "/arg2", "value2b", "--arg3=value3c", "/arg4=value4d", "--Key5:Sub6", "value7e" };
 
-    private static IEnumerable<KeyValuePair<string, string?>> GetInMemrory() => new Dictionary<string, string?>
+    private static IEnumerable<KeyValuePair<string, string?>> GetInMemory() => new Dictionary<string, string?>
     {
         ["Key1"] = "Value2",
         ["Key3:Sub4"] = "Value5",
     };
 
-    private IConfigurationBuilder CreateDefaultBuilder(string[]? args = null, string? environmentName = null, Assembly? assembly = null, Type? type = null, string? basePath = null)
+    private static IConfigurationBuilder CreateDefaultBuilder(string[]? args = null, string? environmentName = null, Assembly? assembly = null, Type? type = null, string? basePath = null)
     {
         environmentName ??= Environments.Production;
         assembly ??= type?.Assembly;
@@ -145,7 +145,7 @@ public class ConfigurationBuilderBuilderTest
         }
     }
 
-    private static void AssertInMemrory(IConfiguration configuration)
+    private static void AssertInMemory(IConfiguration configuration)
     {
         Assert.Equal("Value2", configuration["Key1"]);
         Assert.Equal("Value5", configuration["Key3:Sub4"]);
@@ -182,7 +182,7 @@ public class ConfigurationBuilderBuilderTest
     public void WithAddConfiguration_Success()
     {
         var configuration = new ConfigurationBuilderBuilder()
-            .WithAddConfiguration(b => b.AddInMemoryCollection(GetInMemrory()))
+            .WithAddConfiguration(b => b.AddInMemoryCollection(GetInMemory()))
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -197,7 +197,7 @@ public class ConfigurationBuilderBuilderTest
                 null,
             });
 
-        AssertInMemrory(configuration);
+        AssertInMemory(configuration);
     }
 
     [Fact]
@@ -416,9 +416,7 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void WithCommandLines_NullString()
     {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        var argsHasNull = new string[] { null };
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        var argsHasNull = new string[] { null! };
 
         Assert.Throws<NullReferenceException>(() => new ConfigurationBuilderBuilder().WithCommandLines(argsHasNull).BuildConfigurationRoot());
     }
@@ -427,7 +425,7 @@ public class ConfigurationBuilderBuilderTest
     public void WithConfiguration_Success()
     {
         var initialConfiguration = new ConfigurationBuilder()
-            .AddInMemoryCollection(GetInMemrory())
+            .AddInMemoryCollection(GetInMemory())
             .Build();
 
         var configuration = new ConfigurationBuilderBuilder()
@@ -446,7 +444,7 @@ public class ConfigurationBuilderBuilderTest
                 null,
             });
 
-        AssertInMemrory(configuration);
+        AssertInMemory(configuration);
 
         var configuration2 = new ConfigurationBuilderBuilder()
           .WithConfiguration(initialConfiguration.GetSection("Key3"))
@@ -461,7 +459,7 @@ public class ConfigurationBuilderBuilderTest
     public void WithInMemory_Success()
     {
         var configuration = new ConfigurationBuilderBuilder()
-            .WithInMemory(GetInMemrory())
+            .WithInMemory(GetInMemory())
             .BuildConfigurationRoot();
 
         AssertProviders(configuration, new[] {
@@ -476,7 +474,7 @@ public class ConfigurationBuilderBuilderTest
                 null,
             });
 
-        AssertInMemrory(configuration);
+        AssertInMemory(configuration);
     }
 
     [Fact]
@@ -738,7 +736,7 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Staging")
             .WithAddConfiguration(cb => cb.AddIniFile("appsettings.ini", optional: true, reloadOnChange: true))
             .WithCommandLines(args)
-            .WithInMemory(GetInMemrory())
+            .WithInMemory(GetInMemory())
             .WithConfiguration(initConfig)
             .BuildConfigurationRoot();
 
@@ -758,7 +756,7 @@ public class ConfigurationBuilderBuilderTest
                 null,
             });
 
-        AssertInMemrory(configuration);
+        AssertInMemory(configuration);
         AssertIni(configuration);
         AssertXml(configuration);
     }

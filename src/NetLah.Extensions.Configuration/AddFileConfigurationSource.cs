@@ -22,7 +22,13 @@ public class AddFileConfigurationSource : IConfigurationSource
         _options = options ?? throw new ArgumentNullException(nameof(options));
         if (options.ConfigurationSection == null)
         {
+#if !NETSTANDARD
+#pragma warning disable CA2208 // incorrect string argument is passed to a parameterized constructor
+#endif
             throw new ArgumentNullException(nameof(options.ConfigurationSection));
+#if !NETSTANDARD
+#pragma warning restore CA2208 // incorrect string argument is passed to a parameterized constructor
+#endif
         }
         _defaultOptions = new AddFileOptions { Optional = true, ReloadOnChange = true };
         options.TryAddProvider(".json", JsonConfigurationExtensions.AddJsonFile);
