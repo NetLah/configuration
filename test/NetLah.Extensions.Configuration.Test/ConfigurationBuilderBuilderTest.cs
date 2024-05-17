@@ -10,15 +10,15 @@ namespace NetLah.Extensions.Configuration.Test;
 
 public class ConfigurationBuilderBuilderTest
 {
-    private static string[] GetCommandLines() => new[] { "--CommandLineKey", "CommandLineValue1", "/arg2", "value2b", "--arg3=value3c", "/arg4=value4d", "--Key5:Sub6", "value7e" };
+    private static string[] GetCommandLines() => ["--CommandLineKey", "CommandLineValue1", "/arg2", "value2b", "--arg3=value3c", "/arg4=value4d", "--Key5:Sub6", "value7e"];
 
-    private static IEnumerable<KeyValuePair<string, string?>> GetInMemory() => new Dictionary<string, string?>
+    private static Dictionary<string, string?> GetInMemory() => new()
     {
         ["Key1"] = "Value2",
         ["Key3:Sub4"] = "Value5",
     };
 
-    private static IConfigurationBuilder CreateDefaultBuilder(string[]? args = null, string? environmentName = null, Assembly? assembly = null, Type? type = null, string? basePath = null)
+    private static ConfigurationBuilder CreateDefaultBuilder(string[]? args = null, string? environmentName = null, Assembly? assembly = null, Type? type = null, string? basePath = null)
     {
         environmentName ??= Environments.Production;
         assembly ??= type?.Assembly;
@@ -53,10 +53,14 @@ public class ConfigurationBuilderBuilderTest
 
     private static void AssertProviders(IConfigurationRoot configuration, string[] providerNames, string?[]? extra = null)
     {
-        providerNames = (new string[] { "MemoryConfigurationProvider", "EnvironmentVariablesConfigurationProvider", "EnvironmentVariablesConfigurationProvider" }).Concat(providerNames).ToArray();
+        providerNames =
+        [
+            .. (new string[] { "MemoryConfigurationProvider", "EnvironmentVariablesConfigurationProvider", "EnvironmentVariablesConfigurationProvider" }),
+            .. providerNames,
+        ];
         if (extra != null)
         {
-            extra = (new string?[] { null, null, null }).Concat(extra).ToArray();
+            extra = [.. (new string?[] { null, null, null }), .. extra];
         }
         Assert.NotNull(configuration);
         var providers = configuration.Providers.ToArray();
@@ -165,15 +169,15 @@ public class ConfigurationBuilderBuilderTest
         var configuration = new ConfigurationBuilderBuilder()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
     }
@@ -185,17 +189,17 @@ public class ConfigurationBuilderBuilderTest
             .WithAddConfiguration(b => b.AddInMemoryCollection(GetInMemory()))
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "MemoryConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertInMemory(configuration);
     }
@@ -208,15 +212,15 @@ public class ConfigurationBuilderBuilderTest
 
         var configuration = builder.BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         Assert.Equal("Production", builder.EnvironmentName);
         AssertProduction(configuration);
@@ -231,17 +235,17 @@ public class ConfigurationBuilderBuilderTest
 
         var configuration = builder.BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Development.json",
                 "secrets.json",
                 null,
-            });
+            ]);
 
         Assert.Equal("Development", builder.EnvironmentName);
         AssertDevelopment(configuration);
@@ -254,15 +258,15 @@ public class ConfigurationBuilderBuilderTest
             .WithBaseDirectory()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
     }
@@ -274,15 +278,15 @@ public class ConfigurationBuilderBuilderTest
             .WithBasePath("")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
     }
@@ -294,15 +298,15 @@ public class ConfigurationBuilderBuilderTest
             .WithBasePath("New-Location")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         Assert.Equal("MainValue1-new-location", configuration["MainKey"]);
         Assert.Null(configuration["EnvironmentKey"]);
@@ -315,15 +319,15 @@ public class ConfigurationBuilderBuilderTest
             .WithCurrentDirectory()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
     }
@@ -335,17 +339,17 @@ public class ConfigurationBuilderBuilderTest
             .WithCommandLines("--Key1", "Value2a", "/Key3:Sub4", "Value5b")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("Value2a", configuration["Key1"]);
         Assert.Equal("Value5b", configuration["Key3:Sub4"]);
@@ -359,15 +363,15 @@ public class ConfigurationBuilderBuilderTest
             .WithCommandLines(null)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider"
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         Assert.Null(configuration["CommandLineKey"]);
@@ -379,15 +383,15 @@ public class ConfigurationBuilderBuilderTest
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(null)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider"
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         Assert.Null(configuration["CommandLineKey"]);
@@ -399,15 +403,15 @@ public class ConfigurationBuilderBuilderTest
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider"
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         Assert.Null(configuration["CommandLineKey"]);
@@ -432,17 +436,17 @@ public class ConfigurationBuilderBuilderTest
             .WithConfiguration(initialConfiguration)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "ChainedConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 null,
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertInMemory(configuration);
 
@@ -462,17 +466,17 @@ public class ConfigurationBuilderBuilderTest
             .WithInMemory(GetInMemory())
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "MemoryConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 null,
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertInMemory(configuration);
     }
@@ -483,17 +487,17 @@ public class ConfigurationBuilderBuilderTest
         var configuration = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(GetCommandLines())
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertCommandLines(configuration);
@@ -506,17 +510,17 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Production")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertCommandLines(configuration);
@@ -525,7 +529,7 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void Build_Production_changeTo_dev_Success()
     {
-        // add file 'appsettings.dev.json' to solve Ubuntu file name case-sensitive
+        // add file appsettings.dev.json to solve Ubuntu file name case-sensitive
         var builder = ConfigurationBuilderBuilder.Create<ConfigurationBuilderBuilderTest>(GetCommandLines())
             .WithEnvironment("Production");
 
@@ -538,32 +542,32 @@ public class ConfigurationBuilderBuilderTest
         Assert.Equal("Production", builder.EnvironmentName);
         var configuration1 = builder.BuildConfigurationRoot();
         AssertProduction(configuration1);
-        AssertProviders(configuration1, new[] {
+        AssertProviders(configuration1, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         var configuration2 = builder.WithEnvironment("dev").BuildConfigurationRoot();
         Assert.Equal("dev", builder.EnvironmentName);
 
-        AssertProviders(configuration2, new[] {
+        AssertProviders(configuration2, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.dev.json",
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("MainValue1", configuration2["MainKey"]);
         Assert.Equal("EnvironmentDevelopmentValue1", configuration2["EnvironmentKey"]);
@@ -578,19 +582,19 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Development")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Development.json",
                 "secrets.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertDevelopment(configuration);
         AssertCommandLines(configuration);
@@ -603,17 +607,17 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Development")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Development.json",
                 "secrets.json",
                 null,
-            });
+            ]);
 
         AssertDevelopment(configuration);
         Assert.Null(configuration["CommandLineKey"]);
@@ -626,17 +630,17 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Testing")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Testing.json",
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("MainValue1", configuration["MainKey"]);
         Assert.Equal("EnvironmentTestingValue1", configuration["EnvironmentKey"]);
@@ -653,21 +657,21 @@ public class ConfigurationBuilderBuilderTest
             )
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "IniConfigurationProvider",
                 "XmlConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 "appsettings.ini",
                 "appsettings.xml",
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertCommandLines(configuration);
@@ -683,19 +687,19 @@ public class ConfigurationBuilderBuilderTest
             .WithAddConfiguration(cb => cb.AddXmlFile("appsettings.xml", optional: true, reloadOnChange: true));
         var configuration = builder.BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "IniConfigurationProvider",
                 "XmlConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 "appsettings.ini",
                 "appsettings.xml",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         Assert.Null(configuration["CommandLineKey"]);
@@ -706,15 +710,15 @@ public class ConfigurationBuilderBuilderTest
 
         var configuration2 = builder.WithClearAddedConfiguration().BuildConfigurationRoot();
 
-        AssertProviders(configuration2, new[] {
+        AssertProviders(configuration2, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
-            });
+            ]);
 
         AssertProduction(configuration2);
         AssertIni(configuration2, false);
@@ -740,21 +744,21 @@ public class ConfigurationBuilderBuilderTest
             .WithConfiguration(initConfig)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "ChainedConfigurationProvider",
                 "MemoryConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "IniConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 null,
                 null,
                 "appsettings.json",
                 "appsettings.Staging.json",
                 "appsettings.ini",
                 null,
-            });
+            ]);
 
         AssertInMemory(configuration);
         AssertIni(configuration);
@@ -768,17 +772,17 @@ public class ConfigurationBuilderBuilderTest
         var configuration = ConfigurationBuilderBuilder.Create(typeof(ConfigurationBuilderBuilderTest).Assembly, GetCommandLines())
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertCommandLines(configuration);
@@ -791,17 +795,17 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Production")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertCommandLines(configuration);
@@ -814,19 +818,19 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Development")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Development.json",
                 "secrets.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertDevelopment(configuration);
         AssertCommandLines(configuration);
@@ -838,17 +842,17 @@ public class ConfigurationBuilderBuilderTest
         var configuration = ConfigurationBuilderBuilder.Create(GetCommandLines())
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertCommandLines(configuration);
@@ -861,17 +865,17 @@ public class ConfigurationBuilderBuilderTest
             .WithEnvironment("Development")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Development.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertDevelopment(configuration);
         AssertCommandLines(configuration);
@@ -885,17 +889,17 @@ public class ConfigurationBuilderBuilderTest
             .WithTransformConfiguration()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "TransformConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Transform.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertTransform(configuration);
     }
@@ -922,17 +926,17 @@ public class ConfigurationBuilderBuilderTest
             .WithTransformConfiguration("env_Transform")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "TransformConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertTransform(configuration);
     }
@@ -940,30 +944,30 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void CommandLinesTransform()
     {
-        var configuration = ConfigurationBuilderBuilder.Create(new string[] {
+        var configuration = ConfigurationBuilderBuilder.Create([
             "/tt:0=Serilog:MinimumLevel:Override:Microsoft.AspNetCore.Authentication=Information",
             "/tt:1:Key=Serilog:MinimumLevel",
             "/tt:1:Value=Override:Microsoft.AspNetCore.Mvc=Error",
             "/tt:2:Key=Serilog:MinimumLevel:Override",
             "/tt:2:Values:0=Microsoft.Hosting.Lifetime=Verbose",
             "/tt:2:Values:1=Microsoft.Extensions.Configuration=Warning"
-        })
+        ])
             .WithTransformConfiguration("tt")
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
                 "TransformConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         AssertTransform(configuration);
     }
@@ -976,19 +980,19 @@ public class ConfigurationBuilderBuilderTest
             .WithAddFileConfiguration()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Development.json",
                 "secrets.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertDevelopment(configuration);
     }
@@ -997,25 +1001,25 @@ public class ConfigurationBuilderBuilderTest
     public void AddFileConfigurationProduction_configJson()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+            [
                 "/AddFile:0=Add-File-Source/config.json"
-            })
+            ])
             .WithAddFileConfiguration()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
@@ -1026,29 +1030,29 @@ public class ConfigurationBuilderBuilderTest
     public void AddFileConfigurationProduction_configJsonIni()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+            [
                 "/AddFile:0=Add-File-Source/config.json",
                 "/AddFile:1=Add-File-Source/config.ini",
-            })
+            ])
             .WithAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
             }, throwIfNotSupport: true)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.ini", configuration["MainKey"]);
@@ -1060,29 +1064,29 @@ public class ConfigurationBuilderBuilderTest
     public void AddFileConfigurationProduction_configIniJson()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+            [
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
-            })
+            ])
             .WithAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
             }, throwIfNotSupport: true)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
@@ -1094,11 +1098,11 @@ public class ConfigurationBuilderBuilderTest
     public void AddFileConfigurationProduction_configIniJsonXml()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+            [
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
                 "/AddFile:2=Add-File-Source/config.xml",
-            })
+            ])
             .WithAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
@@ -1106,19 +1110,19 @@ public class ConfigurationBuilderBuilderTest
             }, throwIfNotSupport: true)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.xml", configuration["MainKey"]);
@@ -1131,28 +1135,28 @@ public class ConfigurationBuilderBuilderTest
     public void AddFileConfiguration_Transform()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+            [
                 "/configSrc:0=appsettings.Transform.json",
-            })
+            ])
             .WithAddFileConfiguration(null, "configSrc")
             .WithTransformConfiguration()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
                 "TransformConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertTransform(configuration);
@@ -1165,19 +1169,19 @@ public class ConfigurationBuilderBuilderTest
             .AddAddFileConfiguration()
             .Build();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Development.json",
                 "secrets.json",
                 null,
                 null,
-            });
+            ]);
 
         AssertDevelopment(configuration);
     }
@@ -1185,25 +1189,25 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationProduction_configJson()
     {
-        var configuration = CreateDefaultBuilder(new string[] {
+        var configuration = CreateDefaultBuilder([
                 "/AddFile:0=Add-File-Source/config.json"
-            })
+            ])
             .AddAddFileConfiguration()
             .Build();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
@@ -1213,29 +1217,29 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationProduction_configJsonIni()
     {
-        var configuration = CreateDefaultBuilder(new string[] {
+        var configuration = CreateDefaultBuilder([
                 "/AddFile:0=Add-File-Source/config.json",
                 "/AddFile:1=Add-File-Source/config.ini",
-            })
+            ])
             .AddAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
             }, throwIfNotSupport: true)
             .Build();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.ini", configuration["MainKey"]);
@@ -1246,29 +1250,29 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfigurationProduction_configIniJson()
     {
-        var configuration = CreateDefaultBuilder(new string[] {
+        var configuration = CreateDefaultBuilder([
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
-            })
+            ])
             .AddAddFileConfiguration(options =>
             {
                 options.AddProvider(".ini", IniConfigurationExtensions.AddIniFile);
             }, throwIfNotSupport: true)
             .Build();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.json", configuration["MainKey"]);
@@ -1282,12 +1286,11 @@ public class ConfigurationBuilderBuilderTest
 #if NET6_0_OR_GREATER
 #pragma warning disable 0618
 #endif
-        var configuration = ConfigurationBuilderBuilder.Create(
-        new string[] {
+        var configuration = ConfigurationBuilderBuilder.Create([
                 "/AddFile:0=Add-File-Source/config.ini",
                 "/AddFile:1=Add-File-Source/config.json",
                 "/AddFile:2=Add-File-Source/config.xml",
-            })
+            ])
             .Builder
             .AddAddFileConfiguration(options =>
             {
@@ -1296,21 +1299,22 @@ public class ConfigurationBuilderBuilderTest
             }, throwIfNotSupport: true)
             .Build();
 #if NET6_0_OR_GREATER
+#pragma warning restore 0618
 #endif
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Add-File-Source/config.xml", configuration["MainKey"]);
@@ -1322,28 +1326,28 @@ public class ConfigurationBuilderBuilderTest
     [Fact]
     public void ConfigurationBuilder_AddFileConfiguration_Transform()
     {
-        var configuration = CreateDefaultBuilder(new string[] {
+        var configuration = CreateDefaultBuilder([
                 "/configSrc:0=appsettings.Transform.json",
-            })
+            ])
             .AddAddFileConfiguration(null, "configSrc")
             .AddTransformConfiguration()
             .Build();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
                 "TransformConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
                 null,
-            });
+            ]);
 
         AssertProduction(configuration);
         AssertTransform(configuration);
@@ -1353,10 +1357,10 @@ public class ConfigurationBuilderBuilderTest
     public void AddFileConfigurationProduction_KeyPerFile()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+            [
                 "/AddFile:0:Provider=Key-per_file",
                 "/AddFile:0:Path=Key-Per-File"
-            })
+            ])
             .WithAddFileConfiguration(options =>
             {
 #if NET5_0_OR_GREATER
@@ -1367,19 +1371,19 @@ public class ConfigurationBuilderBuilderTest
             })
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Key-Per-File/mainValue line0", configuration["MainKey"]);
@@ -1390,10 +1394,10 @@ public class ConfigurationBuilderBuilderTest
     public void AddFileConfigurationProduction_KeyPerFile_Handler()
     {
         var configuration = ConfigurationBuilderBuilder.Create(
-            new string[] {
+            [
                 "/AddFile:0:Provider=Key-per_file",
                 "/AddFile:0:Path=Key-Per-File"
-            })
+            ])
             .WithAddFileConfiguration(options =>
             {
 #if NET5_0_OR_GREATER
@@ -1418,19 +1422,19 @@ public class ConfigurationBuilderBuilderTest
             }, throwIfNotSupport: true)
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "ChainedConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Production.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("EnvironmentProductionValue1", configuration["EnvironmentKey"]);
         Assert.Equal("Key-Per-File/mainValue line0", configuration["MainKey"]);
@@ -1445,19 +1449,19 @@ public class ConfigurationBuilderBuilderTest
             .WithMapConfiguration()
             .BuildConfigurationRoot();
 
-        AssertProviders(configuration, new[] {
+        AssertProviders(configuration, [
                 "JsonConfigurationProvider",
                 "JsonConfigurationProvider",
                 "EnvironmentVariablesConfigurationProvider",
                 "CommandLineConfigurationProvider",
                 "MapConfigurationProvider",
-            }, new[] {
+            ], [
                 "appsettings.json",
                 "appsettings.Map.json",
                 null,
                 null,
                 null,
-            });
+            ]);
 
         Assert.Equal("MainValue1", configuration["MainKey"]);
         Assert.Equal("MainValue1", configuration["SecondaryKey"]);
