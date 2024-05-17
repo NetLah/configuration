@@ -2,12 +2,12 @@
 
 namespace NetLah.Extensions.Configuration;
 
-#pragma warning disable S125 // Sections of code should not be commented out
+//#pragma warning disable S125 // Sections of code should not be commented out
 // "Certificate": {
 //      "Path": "testCert.pfx"
 //      "Password": "testPassword"
 // }
-#pragma warning restore S125 // Sections of code should not be commented out
+//#pragma warning restore S125 // Sections of code should not be commented out
 
 public class CertificateConfig
 {
@@ -42,11 +42,6 @@ public class CertificateConfig
 
     public override string? ToString()
     {
-        if (IsFileCert)
-        {
-            return Path;
-        }
-
-        return IsStoreThumbprint ? Thumbprint : Subject;
+        return IsFileCert ? Path : IsStoreThumbprint ? Thumbprint : Subject;
     }
 }

@@ -12,8 +12,8 @@ namespace NetLah.Extensions.Configuration;
 
 public sealed class ConfigurationBuilderBuilder
 {
-    private readonly List<Action<IConfigurationBuilder>> _configureConfigActions = new();
-    private readonly List<Action<IConfigurationBuilder>> _configurePostConfigActions = new();
+    private readonly List<Action<IConfigurationBuilder>> _configureConfigActions = [];
+    private readonly List<Action<IConfigurationBuilder>> _configurePostConfigActions = [];
     private string[]? _args;
     private Assembly? _assembly;
     private string? _basePath;
@@ -35,10 +35,7 @@ public sealed class ConfigurationBuilderBuilder
             .AddEnvironmentVariables(prefix: "DOTNET_")
             .AddEnvironmentVariables(prefix: "ASPNETCORE_");
 
-        if (_environmentName == null)
-        {
-            _environmentName = ((IConfigurationBuilder)configBuilder).Build()[HostDefaults.EnvironmentKey];
-        }
+        _environmentName ??= ((IConfigurationBuilder)configBuilder).Build()[HostDefaults.EnvironmentKey];
 
         if (!string.IsNullOrEmpty(_basePath))
         {

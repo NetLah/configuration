@@ -2,37 +2,25 @@
 
 namespace NetLah.Extensions.Configuration;
 
-internal class ConnectionStringsRoot
+internal class ConnectionStringsRoot(KeyValuePair<string, string>[] configuration,
+    Func<string, string>? keyNormalizer,
+    Func<KeyValuePair<string, string>[], Func<string, string>, ProviderName?, IDictionary<string, ProviderConnectionString>>? factory = null)
 {
-    public ConnectionStringsRoot(KeyValuePair<string, string>[] configuration,
-        Func<string, string>? keyNormalizer,
-        Func<KeyValuePair<string, string>[], Func<string, string>, ProviderName?, IDictionary<string, ProviderConnectionString>>? factory = null)
-    {
-        Configuration = configuration;
-        KeyNormalizer = keyNormalizer ?? KeyTrimNormalizer;
-        Factory = factory ?? ConnectionStringFactory;
-        Cache = new ConcurrentDictionary<ProviderName, IDictionary<string, ProviderConnectionString>>(ProviderNameComparer.Instance);
-    }
+    public KeyValuePair<string, string>[] Configuration { get; } = configuration;
 
-    public KeyValuePair<string, string>[] Configuration { get; }
+    public Func<string, string> KeyNormalizer { get; } = keyNormalizer ?? KeyTrimNormalizer;
 
-    public Func<string, string> KeyNormalizer { get; }
-
-    public Func<KeyValuePair<string, string>[], Func<string, string>, ProviderName?, IDictionary<string, ProviderConnectionString>> Factory { get; }
+    public Func<KeyValuePair<string, string>[], Func<string, string>, ProviderName?, IDictionary<string, ProviderConnectionString>> Factory { get; } = factory ?? ConnectionStringFactory;
 
     public IDictionary<string, ProviderConnectionString>? Default { get; private set; }   // for providerName is null
 
-    public ConcurrentDictionary<ProviderName, IDictionary<string, ProviderConnectionString>> Cache { get; }
+    public ConcurrentDictionary<ProviderName, IDictionary<string, ProviderConnectionString>> Cache { get; } = new ConcurrentDictionary<ProviderName, IDictionary<string, ProviderConnectionString>>(ProviderNameComparer.Instance);
 
     public IDictionary<string, ProviderConnectionString> this[ProviderName? providerName]
     {
         get
         {
-            if (providerName == null)
-                return Default ??= ConnStrFactory();
-
-            return Cache.GetOrAdd(providerName, _ => ConnStrFactory());
-
+            return providerName == null ? (Default ??= ConnStrFactory()) : Cache.GetOrAdd(providerName, _ => ConnStrFactory());
             IDictionary<string, ProviderConnectionString> ConnStrFactory() => Factory(Configuration, KeyNormalizer, providerName);
         }
     }

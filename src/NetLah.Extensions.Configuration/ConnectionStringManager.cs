@@ -49,7 +49,7 @@ public class ConnectionStringManager : IConnectionStringManager
     {
         get
         {
-            var names = connectionNames == null ? new[] { connectionName } : connectionNames.Prepend(connectionName);
+            var names = connectionNames == null ? [connectionName] : connectionNames.Prepend(connectionName);
             foreach (var item in names)
             {
                 if (item != null && ConnectionStrings.TryGetValue(Root.KeyNormalizer(item), out var result))

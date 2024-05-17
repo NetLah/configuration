@@ -25,13 +25,11 @@ public static class CertificateLoader
         {
             var isMacOs = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-#pragma warning disable S3358 // Ternary operators should not be nested
             var keyStorageFlag = !requiredPrivateKey || isMacOs
                 ? X509KeyStorageFlags.DefaultKeySet
                 : certInfo.KeyStorageFlags is { } keyStorageFlags
                 ? (X509KeyStorageFlags)((int)keyStorageFlags & 63)
                 : X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet;
-#pragma warning restore S3358 // Ternary operators should not be nested
 
             var cert = new X509Certificate2(certInfo.Path, certInfo.Password, keyStorageFlag);
 
@@ -64,7 +62,7 @@ public static class CertificateLoader
         var storeLocation = StoreLocation.CurrentUser;
         if (!string.IsNullOrEmpty(location))
         {
-            storeLocation = (StoreLocation)Enum.Parse(typeof(StoreLocation), location, ignoreCase: true);
+            storeLocation = Enum.Parse<StoreLocation>(location, ignoreCase: true);
         }
         var allowInvalid = certInfo.AllowInvalid ?? true;   // default is allow invalid
 
@@ -122,7 +120,6 @@ public static class CertificateLoader
         foreach (var extension in certificate.Extensions.OfType<X509EnhancedKeyUsageExtension>())
         {
             hasEkuExtension = true;
-#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
             foreach (var oid in extension.EnhancedKeyUsages)
             {
                 if (string.Equals(oid.Value, expectedOid, StringComparison.Ordinal))
@@ -130,7 +127,6 @@ public static class CertificateLoader
                     return true;
                 }
             }
-#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
         }
 
         return !hasEkuExtension;

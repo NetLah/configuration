@@ -22,7 +22,7 @@ public class AddFileConfigurationSourceOptions : IConfigureAddFiles
 {
     public IDictionary<string, ConfigureAddFileOptions> ConfigureAddFiles { get; } = new Dictionary<string, ConfigureAddFileOptions>(StringComparer.OrdinalIgnoreCase);
 
-    public List<Action<AddFileContext>> Handlers { get; } = new List<Action<AddFileContext>>();
+    public List<Action<AddFileContext>> Handlers { get; } = [];
 
     public string SectionKey { get; set; } = string.Empty;
 

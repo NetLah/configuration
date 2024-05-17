@@ -3,23 +3,29 @@ using System.Text.RegularExpressions;
 
 namespace NetLah.Extensions.Configuration;
 
-internal class ConnectionStringParser
+internal partial class ConnectionStringParser(IEnumerable<KeyValuePair<string, string>> configuration, ProviderName? providerName, Func<string, string> keyNormalizer)
 {
+#if NET7_0_OR_GREATER
+    internal static readonly Regex QuoteTokenRegex = QuoteTokenGeneratedRegex();
+    private static readonly Regex NameAndProviderRegex = NameAndProviderGeneratedRegex();
+
+    [GeneratedRegex("(?<quote>([$%])\\1)|[$%]{(?<token>[a-zA-Z0-9_\\-\\s]{1,64})}|[$%]\\((?<token>[a-zA-Z0-9_\\-\\s]{1,64})\\)|[$%]\\[(?<token>[a-zA-Z0-9_\\-\\s]{1,64})\\]", RegexOptions.Compiled)]
+    private static partial Regex QuoteTokenGeneratedRegex();
+
+
+    [GeneratedRegex("^(?<connectionName>.+)_(?<providerName>[^_]+)$", RegexOptions.Compiled)]
+    private static partial Regex NameAndProviderGeneratedRegex();
+#else
     internal static readonly Regex QuoteTokenRegex = new("(?<quote>([$%])\\1)|[$%]{(?<token>[a-zA-Z0-9_\\-\\s]{1,64})}|[$%]\\((?<token>[a-zA-Z0-9_\\-\\s]{1,64})\\)|[$%]\\[(?<token>[a-zA-Z0-9_\\-\\s]{1,64})\\]", RegexOptions.Compiled);
     private static readonly Regex NameAndProviderRegex = new("^(?<connectionName>.+)_(?<providerName>[^_]+)$", RegexOptions.Compiled);
+#endif
+
     private static readonly StringComparer DefaultStringComparer = ProviderNameComparer.DefaultStringComparer;
     private static readonly StringComparison DefaultStringComparison = StringComparison.OrdinalIgnoreCase;
 
-    private readonly IEnumerable<KeyValuePair<string, string>> _configuration;
-    private readonly ProviderName? _selection;
-    private readonly Func<string, string> _keyNormalizer;
-
-    public ConnectionStringParser(IEnumerable<KeyValuePair<string, string>> configuration, ProviderName? providerName, Func<string, string> keyNormalizer)
-    {
-        _configuration = configuration;
-        _selection = providerName;
-        _keyNormalizer = keyNormalizer;
-    }
+    private readonly IEnumerable<KeyValuePair<string, string>> _configuration = configuration;
+    private readonly ProviderName? _selection = providerName;
+    private readonly Func<string, string> _keyNormalizer = keyNormalizer;
 
     // https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Configuration.EnvironmentVariables/src/EnvironmentVariablesConfigurationProvider.cs#L15-L18
     internal static ProviderName ParseProviderName(string? providerName) => (providerName?.ToUpperInvariant()) switch
@@ -51,14 +57,14 @@ internal class ConnectionStringParser
             .GroupBy(kv => kv.normalizedKey)
             .ToDictionary(g => g.Key, g => g.First(), DefaultStringComparer);
 
-        var normalizedkeys = lookup.Keys.OrderBy(k => k.Length).ToArray();
+        var normalizedKeys = lookup.Keys.OrderBy(k => k.Length).ToArray();
 
         var selectedProvider = _selection?.Provider;
         var selectedCustom = _selection?.Custom;
 
         var conns = new List<ProviderConnectionString>();
 
-        foreach (var key in normalizedkeys)
+        foreach (var key in normalizedKeys)
         {
             if (lookup.Remove(key, out var kv) && kv.value != null)
             {
@@ -94,7 +100,9 @@ internal class ConnectionStringParser
                     if (_selection == null || (selectedProvider == provider.Provider && (!isExactCustom || isSameCustom)))
                     {
                         if (isExactCustom && isSameCustom)
+                        {
                             customProviderName = selectedCustom;
+                        }
 
                         conns.Add(new ProviderConnectionString(connectionName, kv.value, provider.Provider, customProviderName));
                     }
@@ -139,7 +147,7 @@ internal class ConnectionStringParser
 
             void Resolve(Entry entry)
             {
-                if (entry.HasQuotes || entry.Tokens.Any())
+                if (entry.HasQuotes || entry.Tokens.Count > 0)
                 {
                     entry.ConnStr.Value = QuoteTokenRegex.Replace(entry.Raw, ExpandMatchEvaluator);
                 }
@@ -182,20 +190,13 @@ internal class ConnectionStringParser
         return new Entry(connStr, hasQuotes, tokens);
     }
 
-    internal class Entry
+    internal class Entry(ProviderConnectionString connStr, bool hasQuotes, HashSet<string> tokens)
     {
-        public Entry(ProviderConnectionString connStr, bool hasQuotes, HashSet<string> tokens)
-        {
-            ConnStr = connStr;
-            HasQuotes = hasQuotes;
-            Tokens = tokens;
-        }
-
         public string Name => ConnStr.Name;    // for easier to debug and usage
         public string Raw => ConnStr.Raw;      // for easier to debug and usage
-        public ProviderConnectionString ConnStr { get; }
-        public bool HasQuotes { get; }
-        public HashSet<string> Tokens { get; }
+        public ProviderConnectionString ConnStr { get; } = connStr;
+        public bool HasQuotes { get; } = hasQuotes;
+        public HashSet<string> Tokens { get; } = tokens;
         public int Remaining { get; set; }
     }
 }

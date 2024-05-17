@@ -3,16 +3,11 @@ using Microsoft.Extensions.Primitives;
 
 namespace NetLah.Extensions.Configuration;
 
-public class TransformConfigurationProvider : ConfigurationProvider
+public class TransformConfigurationProvider(IConfigurationSection configurationSection) : ConfigurationProvider
 {
-    private readonly IConfigurationSection _configurationSection;
+    private readonly IConfigurationSection _configurationSection = configurationSection;
     private object? _lock = null;
     private IChangeToken? _token;
-
-    public TransformConfigurationProvider(IConfigurationSection configurationSection)
-    {
-        _configurationSection = configurationSection;
-    }
 
     private void OnChange(object? obj)
     {
