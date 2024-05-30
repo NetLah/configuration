@@ -3,9 +3,10 @@ using Microsoft.Extensions.Primitives;
 
 namespace NetLah.Extensions.Configuration;
 
-public class TransformConfigurationProvider(IConfigurationSection configurationSection) : ConfigurationProvider
+public class TransformConfigurationProvider(IConfigurationSection configurationSection, IConfigurationRoot configurationRoot) : ConfigurationProvider
 {
     private readonly IConfigurationSection _configurationSection = configurationSection;
+    private readonly IConfigurationRoot _configurationRoot = configurationRoot;
     private object? _lock = null;
     private IChangeToken? _token;
 
@@ -41,14 +42,25 @@ public class TransformConfigurationProvider(IConfigurationSection configurationS
                 {
                     TryParse(key + ":", value);
                 }
-                else
+
+                if (item["Ref"] is { } refValue && _configurationRoot[refValue] is { } refConfigValue1)
                 {
-                    foreach (var section in item.GetSection("Values").GetChildren())
+                    TryParse(key + ":", refConfigValue1);
+                }
+
+                foreach (var section in item.GetSection("Value").GetChildren().Concat(item.GetSection("Values").GetChildren()))
+                {
+                    if (section.Value is { } sectionValue)
                     {
-                        if (section.Value is { } sectionValue)
-                        {
-                            TryParse(key + ":", sectionValue);
-                        }
+                        TryParse(key + ":", sectionValue);
+                    }
+                }
+
+                foreach (var section in item.GetSection("Ref").GetChildren())
+                {
+                    if (section.Value is { } sectionValue && _configurationRoot[sectionValue] is { } refConfigValue2)
+                    {
+                        TryParse(key + ":", refConfigValue2);
                     }
                 }
             }

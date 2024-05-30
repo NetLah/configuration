@@ -163,6 +163,18 @@ public class ConfigurationBuilderBuilderTest
         Assert.Equal("Warning", configuration["Serilog:MinimumLevel:Override:Microsoft.Extensions.Configuration"]);
     }
 
+    private static void AssertTransformEx(IConfiguration configuration)
+    {
+        Assert.Equal("Verbose2", configuration["Serilog:MinimumLevel:Override:Microsoft.Hosting.Lifetime2"]);
+        Assert.Equal("Warning2", configuration["Serilog:MinimumLevel:Override:Microsoft.Extensions.Configuration2"]);
+        Assert.Equal("Verbose3", configuration["Serilog:MinimumLevel:Override:Microsoft.Hosting.Lifetime3"]);
+        Assert.Equal("Verbose4", configuration["Serilog:MinimumLevel:Override:Microsoft.Hosting.Lifetime4"]);
+        Assert.Equal("Warning5", configuration["Serilog:MinimumLevel:Override:Microsoft.Extensions.Configuration5"]);
+        Assert.Equal("Verbose6", configuration["Serilog:MinimumLevel:Override:Microsoft.Hosting.Lifetime6"]);
+        Assert.Equal("Verbose7", configuration["Serilog:MinimumLevel:Override:Microsoft.Hosting.Lifetime7"]);
+        Assert.Equal("Warning8", configuration["Serilog:MinimumLevel:Override:Microsoft.Extensions.Configuration8"]);
+    }
+
     [Fact]
     public void Default_Success()
     {
@@ -902,6 +914,7 @@ public class ConfigurationBuilderBuilderTest
             ]);
 
         AssertTransform(configuration);
+        AssertTransformEx(configuration);
     }
 
     [Fact]
@@ -1160,6 +1173,7 @@ public class ConfigurationBuilderBuilderTest
 
         AssertProduction(configuration);
         AssertTransform(configuration);
+        AssertTransformEx(configuration);
     }
 
     [Fact]
@@ -1351,6 +1365,7 @@ public class ConfigurationBuilderBuilderTest
 
         AssertProduction(configuration);
         AssertTransform(configuration);
+        AssertTransformEx(configuration);
     }
 
     [Fact]

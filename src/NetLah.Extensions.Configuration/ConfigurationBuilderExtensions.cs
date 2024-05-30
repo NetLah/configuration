@@ -19,7 +19,7 @@ public static class ConfigurationBuilderExtensions
 
         var configurationSection = configuration.GetSection(sectionKey);
 
-        configBuilder.Add(new TransformConfigurationSource(configurationSection));
+        configBuilder.Add(new TransformConfigurationSource(configurationSection, configuration));
 
         return configBuilder;
     }
