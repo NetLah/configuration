@@ -135,6 +135,7 @@
     <PackageReference Update="SkiaSharp.QrCode" Version="0.6.0" />
     <PackageReference Update="Spire.Doc" Version="11.*" />
     <PackageReference Update="StackExchange.Redis" Version="2.*" />
+    <PackageReference Update="Std.UriTemplate" Version="0.*" />
     <PackageReference Update="Tavis.UriTemplates" Version="2.*" />
     <PackageReference Update="TimeZoneConverter" Version="5.*" />
     <PackageReference Update="YamlDotNet" Version="11.*" />
@@ -155,6 +156,7 @@
     <PackageReference Update="Microsoft.VisualStudio.Debugger.Contracts" Version="17.*" />
     <PackageReference Update="Microsoft.VisualStudio.Threading" Version="17.*" />
     <PackageReference Update="Microsoft.VisualStudio.Validation" Version="17.*" />
+    <PackageReference Update="System.ClientModel" Version="1.*" /> 
     <PackageReference Update="System.CommandLine" Version="2.*-*" />
     <PackageReference Update="System.Memory" Version="4.5.4" />
     <PackageReference Update="System.Runtime.Loader" Version="4.3.0" />
@@ -171,7 +173,9 @@
     <PackageReference Update="Microsoft.CodeAnalysis.Features" Version="4.*" />
     <PackageReference Update="Microsoft.CodeAnalysis.Razor" Version="6.*" />
     <PackageReference Update="Microsoft.CodeAnalysis.Scripting" Version="4.*" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Workspaces.Common" Version="*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic" Version="4.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.*" />
     <PackageReference Update="Microsoft.DiaSymReader" Version="2.*" />
 
     <!--microsoft extensions-->
@@ -194,6 +198,7 @@
     <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="$(FrameworkVersion)" />
+    <PackageReference Update="Microsoft.Extensions.Diagnostics.Abstractions" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.FileProviders.Abstractions" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.FileProviders.Physical" Version="$(FrameworkVersion)" />
     <PackageReference Update="Microsoft.Extensions.FileSystemGlobbing" Version="$(FrameworkVersion)" />
@@ -232,6 +237,7 @@
     <PackageReference Update="System.Drawing.Common" Version="$(FrameworkVersion)" />
     <PackageReference Update="System.Formats.Asn1" Version="$(FrameworkVersion)" />
     <PackageReference Update="System.IO.Hashing" Version="$(FrameworkVersion)" />
+    <PackageReference Update="System.IO.Pipelines" Version="$(FrameworkVersion)" />
     <PackageReference Update="System.Memory.Data" Version="$(FrameworkVersion)" />
     <PackageReference Update="System.Net.Http.Json" Version="$(FrameworkVersion)" />
     <PackageReference Update="System.Reflection.Metadata" Version="$(FrameworkVersion)" />
@@ -246,6 +252,7 @@
     <PackageReference Update="System.Text.Encoding.CodePages" Version="$(FrameworkVersion)" />
     <PackageReference Update="System.Text.Encodings.Web" Version="$(FrameworkVersion)" />
     <PackageReference Update="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Update="System.Threading.Channels" Version="$(SystemTextJsonVersion)" />
     <PackageReference Update="System.Windows.Extensions" Version="$(FrameworkVersion)" />
 
     <!-- .NET 8.0 -->
