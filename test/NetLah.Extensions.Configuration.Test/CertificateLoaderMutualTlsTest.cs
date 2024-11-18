@@ -11,8 +11,8 @@ namespace NetLah.Extensions.Configuration.Test;
 public class CertificateLoaderMutualTlsTest
 {
     [Theory]
-    [InlineData("development.dummy_ecdsa_p384-2021June.pfx")]
-    // [InlineData("development.dummy_ecdsa_p521-2021June.pfx")]
+    [InlineData("development.dummy_ecdh_p384-2021June.pfx")]
+    // [InlineData("development.dummy_ecdh_p521-2021June.pfx")]
     [InlineData("development.dummy-rsa-2071June.pfx")]
     [InlineData("development.dummy-rsa4096-2071June.pfx")]
     public void Pkcs12AuthenticationTest(string filename)

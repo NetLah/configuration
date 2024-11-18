@@ -31,19 +31,54 @@ public static class CertificateLoader
                 ? (X509KeyStorageFlags)((int)keyStorageFlags & 63)
                 : X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet;
 
-            var cert = new X509Certificate2(certInfo.Path, certInfo.Password, keyStorageFlag);
+            X509Certificate2? cert = null;
+
+#if NET9_0_OR_GREATER
+            cert = requiredPrivateKey
+                ? (certInfo.IsPem
+                    ? (string.IsNullOrEmpty(certInfo.Password)
+                        ? X509Certificate2.CreateFromPemFile(certInfo.Path, certInfo.KeyPath ?? certInfo.Path)
+                        : X509Certificate2.CreateFromEncryptedPemFile(certInfo.Path, certInfo.Password, certInfo.KeyPath ?? certInfo.Path)
+                    )
+                    : X509CertificateLoader.LoadPkcs12FromFile(certInfo.Path, certInfo.Password, keyStorageFlag)
+                )
+                : X509CertificateLoader.LoadCertificateFromFile(certInfo.Path);
+#else
+
+#if NET6_0_OR_GREATER
+            // .NET 5.0 supports X509Certificate2.CreateFromPemFile
+            cert = certInfo.IsPem
+                ? (requiredPrivateKey
+                    ? (string.IsNullOrEmpty(certInfo.Password)
+                        ? X509Certificate2.CreateFromPemFile(certInfo.Path, certInfo.KeyPath ?? certInfo.Path)
+                        : X509Certificate2.CreateFromEncryptedPemFile(certInfo.Path, certInfo.Password, certInfo.KeyPath ?? certInfo.Path)
+                    )
+                    : X509Certificate2.CreateFromPemFile(certInfo.Path)
+                )
+                : new X509Certificate2(certInfo.Path, certInfo.Password, keyStorageFlag);
+#else
+            cert = new X509Certificate2(certInfo.Path, certInfo.Password, keyStorageFlag);
+#endif
 
             if (requiredPrivateKey && !cert.HasPrivateKey)
             {
                 cert.Dispose();
                 throw new InvalidOperationException("The certificate doesn't have private key");
             }
+#endif
 
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            if (!cert.HasPrivateKey || !isWindows || !certInfo.Reimport)
+            {
+                return cert;
+            }
 
-            return !cert.HasPrivateKey || !isWindows || !certInfo.Reimport
-                ? cert
-                : new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
+#if NET9_0_OR_GREATER
+            var result = X509CertificateLoader.LoadPkcs12(cert.Export(X509ContentType.Pkcs12), null);
+#else
+            var result = new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
+#endif
+            return result;
         }
 
         return certInfo.IsStoreThumbprint || certInfo.IsStoreSubject ? LoadFromStoreCert(certInfo, oid, requiredPrivateKey) : null;

@@ -16,11 +16,15 @@ public class CertificateConfig
 
     public string? Path { get; set; }
 
+    public string? KeyPath { get; set; }
+
     public string? Password { get; set; }
 
     public X509KeyStorageFlags? KeyStorageFlags { get; set; }
 
     public bool Reimport { get; set; } = true;
+
+    public bool IsPem { get; set; }
 
     // Cert/Thumbprint on store
 

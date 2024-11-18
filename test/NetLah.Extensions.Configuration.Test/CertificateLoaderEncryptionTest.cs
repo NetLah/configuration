@@ -8,21 +8,58 @@ namespace NetLah.Extensions.Configuration.Test;
 public class CertificateLoaderEncryptionTest
 {
     [Theory]
-    [InlineData("development.dummy_ecdsa_p384-2021June.pfx")]
-    [InlineData("development.dummy_ecdsa_p521-2021June.pfx")]
-    [InlineData("development.dummy-rsa-2071June.pfx")]
-    [InlineData("development.dummy-rsa4096-2071June.pfx")]
-    public void Pkcs12EncryptionSigningTest(string filename)
+    [InlineData("development.dummy_ecdh_p384-2021June.pfx", false, true)]
+    [InlineData("development.dummy_ecdh_p384-2021June_nopass.pfx", false, false)]
+    [InlineData("development.dummy_ecdh_p521-2021June.pfx", false, true)]
+    [InlineData("development.dummy_ecdh_p521-2021June_nopass.pfx", false, false)]
+    [InlineData("development.dummy-rsa-2071June.pfx", false, true)]
+    [InlineData("development.dummy-rsa-2071June_nopass.pfx", false, false)]
+    [InlineData("development.dummy-rsa4096-2071June.pfx", false, true)]
+    [InlineData("development.dummy-rsa4096-2071June_nopass.pfx", false, false)]
+#if NET6_0_OR_GREATER
+    [InlineData("development.dummy_ecdh_p384-2021June.pem", true, true)]
+    [InlineData("development.dummy_ecdh_p384-2021June_noenc.pem", true, false)]
+    [InlineData("development.dummy_ecdh_p521-2021June.pem", true, true)]
+    [InlineData("development.dummy_ecdh_p521-2021June_noenc.pem", true, false)]
+    [InlineData("development.dummy-rsa-2071June.pem", true, true)]
+    [InlineData("development.dummy-rsa-2071June_noenc.pem", true, false)]
+    [InlineData("development.dummy-rsa4096-2071June.pem", true, true)]
+    [InlineData("development.dummy-rsa4096-2071June_noenc.pem", true, false)]
+#endif
+    public void Pkcs12EncryptionSigningTest(string filename, bool isPem, bool requirePass)
     {
         // Cannot use empty password on MacOS with netcoreapp3.1 and before, only supported custom loader since net5.0
         // https://github.com/dotnet/runtime/issues/23635#issuecomment-334028941
         var filePath = Path.GetFullPath(Path.Combine("Properties", filename));
-        var certificateConfig = new CertificateConfig { Path = filePath, Password = filename };
+        var certificateConfig = new CertificateConfig
+        {
+            Path = filePath,
+            KeyPath = isPem ? filePath : null,
+            IsPem = isPem,
+            Password = requirePass ? filename : null,
+        };
         var result = CertificateLoader.LoadCertificate(certificateConfig, "Test", requiredPrivateKey: true);
 
         Assert.NotNull(result);
         ValidatePrivateKey(result);
     }
+
+    //#if NET6_0_OR_GREATER
+    //    [Theory]
+    //    [InlineData("development.dummy_ecdh_p384-2021June.pem", "development.dummy_ecdh_p384-2021June.pem")]
+    //    [InlineData("development.dummy_ecdh_p384-2021June_noenc.pem", null)]
+    //    public void PemEncryptionSigningTest(string filename, string? passphrase)
+    //    {
+    //        // Cannot use empty password on MacOS with netcoreapp3.1 and before, only supported custom loader since net5.0
+    //        // https://github.com/dotnet/runtime/issues/23635#issuecomment-334028941
+    //        var filePath = Path.GetFullPath(Path.Combine("Properties", filename));
+    //        var certificateConfig = new CertificateConfig { Path = filePath, Password = passphrase, IsPem = true };
+    //        var result = CertificateLoader.LoadCertificate(certificateConfig, "Test", requiredPrivateKey: true);
+
+    //        Assert.NotNull(result);
+    //        ValidatePrivateKey(result);
+    //    }
+    //#endif
 
     private static void ValidatePrivateKey(X509Certificate2 certificate)
     {

@@ -1,5 +1,25 @@
 # Include these certs
-!development.dummy_ecdsa_p384-2021June.pfx
-!development.dummy_ecdsa_p521-2021June.pfx
+!development.dummy-rsa-2071June.cer
+!development.dummy-rsa-2071June.crt
+!development.dummy-rsa-2071June.pem
 !development.dummy-rsa-2071June.pfx
+!development.dummy-rsa-2071June_noenc.pem
+!development.dummy-rsa-2071June_nopass.pfx
+!development.dummy-rsa4096-2071June.cer
+!development.dummy-rsa4096-2071June.crt
+!development.dummy-rsa4096-2071June.pem
 !development.dummy-rsa4096-2071June.pfx
+!development.dummy-rsa4096-2071June_noenc.pem
+!development.dummy-rsa4096-2071June_nopass.pfx
+!development.dummy_ecdh_p384-2021June.cer
+!development.dummy_ecdh_p384-2021June.crt
+!development.dummy_ecdh_p384-2021June.pem
+!development.dummy_ecdh_p384-2021June.pfx
+!development.dummy_ecdh_p384-2021June_noenc.pem
+!development.dummy_ecdh_p384-2021June_nopass.pfx
+!development.dummy_ecdh_p521-2021June.cer
+!development.dummy_ecdh_p521-2021June.crt
+!development.dummy_ecdh_p521-2021June.pem
+!development.dummy_ecdh_p521-2021June.pfx
+!development.dummy_ecdh_p521-2021June_noenc.pem
+!development.dummy_ecdh_p521-2021June_nopass.pfx
