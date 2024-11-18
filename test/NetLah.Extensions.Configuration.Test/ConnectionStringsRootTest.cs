@@ -68,10 +68,12 @@ public class ConnectionStringsRootTest
         }
 
         void Verify(int times)
-            => mockFactory.Verify(
+        {
+            mockFactory.Verify(
                 s => s.Invoke(It.IsAny<KeyValuePair<string, string>[]>(),
                     It.IsAny<Func<string, string>>(),
                     It.IsAny<ProviderName>()
                 ), Times.Exactly(times));
+        }
     }
 }

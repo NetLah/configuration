@@ -21,10 +21,9 @@ internal class EntryComparer : IEqualityComparer<Entry>
 
     public bool Equals([AllowNull] Entry x, [AllowNull] Entry y)
     {
-        if (x == null || y == null)
-            return x == null && y == null;
-
-        return x.GetType() == y.GetType() &&
+        return x == null || y == null
+            ? x == null && y == null
+            : x.GetType() == y.GetType() &&
             string.Equals(x.Name, y.Name) &&
             x.ConnStr is ProviderConnectionString a &&
             y.ConnStr is ProviderConnectionString b &&
@@ -32,7 +31,9 @@ internal class EntryComparer : IEqualityComparer<Entry>
     }
 
     public int GetHashCode([DisallowNull] Entry obj)
-        => obj.Name.GetHashCode() ^ (obj.ConnStr is { } a ? ConnStrComparer.GetHashCode(a) : 0);
+    {
+        return obj.Name.GetHashCode() ^ (obj.ConnStr is { } a ? ConnStrComparer.GetHashCode(a) : 0);
+    }
 }
 
 internal class ProviderConnectionStringComparer : IEqualityComparer<ProviderConnectionString>
@@ -42,16 +43,17 @@ internal class ProviderConnectionStringComparer : IEqualityComparer<ProviderConn
 
     public bool Equals([AllowNull] ProviderConnectionString x, [AllowNull] ProviderConnectionString y)
     {
-        if (x == null || y == null)
-            return x == null && y == null;
-
-        return string.Equals(x.Name, y.Name) &&
+        return x == null || y == null
+            ? x == null && y == null
+            : string.Equals(x.Name, y.Name) &&
             string.Equals(x.Value, y.Value) &&
             DefaultProviderNameComparer.Equals(x, y);
     }
 
     public int GetHashCode([DisallowNull] ProviderConnectionString obj)
-        => obj.Name.GetHashCode() ^
-        (obj.Value?.GetHashCode() ?? 0) ^
-        DefaultProviderNameComparer.GetHashCode(obj);
+    {
+        return obj.Name.GetHashCode() ^
+            (obj.Value?.GetHashCode() ?? 0) ^
+            DefaultProviderNameComparer.GetHashCode(obj);
+    }
 }

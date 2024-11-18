@@ -21,16 +21,27 @@ internal class ConnectionStringsRoot(KeyValuePair<string, string>[] configuratio
         get
         {
             return providerName == null ? (Default ??= ConnStrFactory()) : Cache.GetOrAdd(providerName, _ => ConnStrFactory());
-            IDictionary<string, ProviderConnectionString> ConnStrFactory() => Factory(Configuration, KeyNormalizer, providerName);
+            IDictionary<string, ProviderConnectionString> ConnStrFactory()
+            {
+                return Factory(Configuration, KeyNormalizer, providerName);
+            }
         }
     }
 
-    internal static string KeyTrimNormalizer(string s) => s.Trim();
+    internal static string KeyTrimNormalizer(string s)
+    {
+        return s.Trim();
+    }
 
-    public static string KeyPreserveSpaceNormalizer(string s) => s;
+    public static string KeyPreserveSpaceNormalizer(string s)
+    {
+        return s;
+    }
 
     internal static IDictionary<string, ProviderConnectionString> ConnectionStringFactory(KeyValuePair<string, string>[] configuration,
         Func<string, string> keyNormalizer,
         ProviderName? providerName)
-        => new ConnectionStringParser(configuration, providerName, keyNormalizer).Parse();
+    {
+        return new ConnectionStringParser(configuration, providerName, keyNormalizer).Parse();
+    }
 }

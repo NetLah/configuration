@@ -10,13 +10,19 @@ namespace NetLah.Extensions.Configuration.Test;
 
 public class ConfigurationBuilderBuilderTest
 {
-    private static string[] GetCommandLines() => ["--CommandLineKey", "CommandLineValue1", "/arg2", "value2b", "--arg3=value3c", "/arg4=value4d", "--Key5:Sub6", "value7e"];
-
-    private static Dictionary<string, string?> GetInMemory() => new()
+    private static string[] GetCommandLines()
     {
-        ["Key1"] = "Value2",
-        ["Key3:Sub4"] = "Value5",
-    };
+        return ["--CommandLineKey", "CommandLineValue1", "/arg2", "value2b", "--arg3=value3c", "/arg4=value4d", "--Key5:Sub6", "value7e"];
+    }
+
+    private static Dictionary<string, string?> GetInMemory()
+    {
+        return new()
+        {
+            ["Key1"] = "Value2",
+            ["Key3:Sub4"] = "Value5",
+        };
+    }
 
     private static ConfigurationBuilder CreateDefaultBuilder(string[]? args = null, string? environmentName = null, Assembly? assembly = null, Type? type = null, string? basePath = null)
     {

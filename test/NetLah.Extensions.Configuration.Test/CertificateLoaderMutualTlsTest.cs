@@ -128,7 +128,7 @@ public class CertificateLoaderMutualTlsTest
                 if (flags[port0 - port1])
                 {
                     maxTry--;
-                    TcpListener server = null;
+                    TcpListener? server = null;
                     try
                     {
                         var server0 = new TcpListener(IPAddress.Loopback, port0);

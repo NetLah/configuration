@@ -9,7 +9,10 @@ public abstract class AddFileOptionsBase
     public bool ReloadOnChange { get; set; } = true;
     public string? LoggingLevel { get; set; }
 
-    public bool IsEnableLogging() => GetLogLevel() != LogLevel.None;
+    public bool IsEnableLogging()
+    {
+        return GetLogLevel() != LogLevel.None;
+    }
 
     public LogLevel GetLogLevel()
     {
@@ -26,7 +29,10 @@ public abstract class AddFileOptionsBase
         };
     }
 
-    public void ResetCache() => _logLevel = default;
+    public void ResetCache()
+    {
+        _logLevel = default;
+    }
 }
 
 public class AddFileOptions : AddFileOptionsBase
