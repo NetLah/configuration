@@ -34,7 +34,9 @@ internal class ProviderNameComparer : IEqualityComparer<ProviderName?>
     public bool Equals(ProviderName? x, ProviderName? y)
     {
         if (x == null || y == null)
+        {
             return x == null && y == null;
+        }
 
         var result = x.Provider == y.Provider;
         var isNotCustom = x.Provider != DbProviders.Custom;
@@ -54,14 +56,9 @@ internal class ProviderNameComparer : IEqualityComparer<ProviderName?>
         if (obj != null)
         {
             var hash1 = obj.Provider.GetHashCode();
-            if (obj.Provider != DbProviders.Custom || string.IsNullOrEmpty(obj.Custom))
-            {
-                return hash1;
-            }
-            else
-            {
-                return hash1 ^ DefaultStringComparer.GetHashCode(obj.Custom);
-            }
+            return obj.Provider != DbProviders.Custom || string.IsNullOrEmpty(obj.Custom)
+                ? hash1
+                : hash1 ^ DefaultStringComparer.GetHashCode(obj.Custom);
         }
         return 0;
     }

@@ -7,9 +7,11 @@ namespace NetLah.Extensions.Configuration.Test;
 public class EnumParseBindTest
 {
     private static IConfiguration NewConfig(Dictionary<string, string?> initialData)
-        => new ConfigurationBuilder()
+    {
+        return new ConfigurationBuilder()
             .AddInMemoryCollection(initialData)
             .Build();
+    }
 
     [Fact]
     public void Null()

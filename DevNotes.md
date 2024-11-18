@@ -28,3 +28,10 @@ Improve load certificate, test TLS authentication, naming CertificateInfo config
  - Test Authentication TLS
  - Fix Authentication TLS on Windows: support reimport and change to default Exportable | EphemeralKeySet
  - New configuration: CertificateConfig with key storage flags and reimport
+
+ ### Generate Self-Signed Certificate
+ -  `-TextExtension @("2.5.29.19={critical} {text}CA=false")`
+
+ - New-SelfSignedCertificate -CertStoreLocation 'Cert:\CurrentUser\My' -NotAfter (Get-Date).AddYears(50) -Subject 'development.dummy_ecdsa_p384-2024Nov' -FriendlyName 'development.dummy_ecdsa_p384-2024Nov' -KeyAlgorithm ECDSA_P384 -HashAlgorithm SHA384 -KeyUsage DigitalSignature,NonRepudiation -CurveExport CurveName
+ 
+ - New-SelfSignedCertificate -CertStoreLocation 'Cert:\CurrentUser\My' -NotAfter (Get-Date).AddYears(50) -Subject 'development.dummy_ecdsa_p521-2024Nov' -FriendlyName 'development.dummy_ecdsa_p521-2024Nov' -KeyAlgorithm ECDSA_P521 -HashAlgorithm SHA384 -KeyUsage DigitalSignature,NonRepudiation -CurveExport CurveName

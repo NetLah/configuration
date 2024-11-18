@@ -252,10 +252,7 @@ public class ConnectionStringParserTest
     [Fact]
     public void RegexNullInputTest()
     {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         var ex = Assert.Throws<ArgumentNullException>(() => QuoteTokenRegex.Replace(null, ""));
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-
         Assert.Equal("input", ex.ParamName);
     }
 }

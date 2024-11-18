@@ -61,11 +61,9 @@ public static class ConfigurationBuilderExtensions
         if (optionsBuilder?.SectionKey == null)
         {
 #if !NETSTANDARD
-#pragma warning disable CA2208 // incorrect string argument is passed to a parameterized constructor
 #endif
             throw new ArgumentNullException(nameof(optionsBuilder.SectionKey));
 #if !NETSTANDARD
-#pragma warning restore CA2208 // incorrect string argument is passed to a parameterized constructor
 #endif
         }
 

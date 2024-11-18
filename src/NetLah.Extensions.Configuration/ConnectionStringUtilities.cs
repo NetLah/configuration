@@ -6,17 +6,24 @@ namespace NetLah.Extensions.Configuration;
 
 public static class ConnectionStringUtilities
 {
-    private static string? ConvertToString(object value) => value == null ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
+    private static string? ConvertToString(object value)
+    {
+        return value == null ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
+    }
 
     public static IConfiguration ToConfiguration(string connectionString)
-        => new ConfigurationBuilder()
+    {
+        return new ConfigurationBuilder()
             .AddInMemoryCollection(new DbConnectionStringBuilder { ConnectionString = connectionString }
                 .Cast<KeyValuePair<string, object>>()
                 .ToDictionary(kv => kv.Key, kv => ConvertToString(kv.Value)))
             .Build();
+    }
 
     public static IConfiguration ToConfiguration(this ProviderConnectionString providerConnectionString)
-        => providerConnectionString.Configuration ??= ToConfiguration(providerConnectionString.Value);
+    {
+        return providerConnectionString.Configuration ??= ToConfiguration(providerConnectionString.Value);
+    }
 
     public static TOptions? Get<TOptions>(string connectionString)
     {

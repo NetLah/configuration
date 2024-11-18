@@ -93,7 +93,10 @@ public sealed class ConfigurationBuilderBuilder
 #if NETSTANDARD
     public IConfigurationBuilder Builder => _builderOrManager ??= ConfigureBuilder();
 
-    public IConfigurationRoot Build() => Builder.Build();
+    public IConfigurationRoot Build()
+    {
+        return Builder.Build();
+    }
 #else
     public ConfigurationManager Manager => _builderOrManager ??= ConfigureBuilder();
 
@@ -101,7 +104,10 @@ public sealed class ConfigurationBuilderBuilder
     public IConfigurationBuilder Builder => Manager;
 
     [Obsolete("This method is obsolete. Use property " + nameof(Manager) + " instead.")]
-    public IConfigurationRoot Build() => Manager;
+    public IConfigurationRoot Build()
+    {
+        return Manager;
+    }
 #endif
 
     public ConfigurationBuilderBuilder WithAddConfiguration(Action<IConfigurationBuilder> addConfiguration)
@@ -122,7 +128,10 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithAppSecrets<TStartup>() => WithAppSecrets(typeof(TStartup).Assembly);
+    public ConfigurationBuilderBuilder WithAppSecrets<TStartup>()
+    {
+        return WithAppSecrets(typeof(TStartup).Assembly);
+    }
 
     public ConfigurationBuilderBuilder WithBasePath(string basePath)
     {
@@ -130,7 +139,10 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithBaseDirectory() => WithBasePath(AppDomain.CurrentDomain.BaseDirectory);
+    public ConfigurationBuilderBuilder WithBaseDirectory()
+    {
+        return WithBasePath(AppDomain.CurrentDomain.BaseDirectory);
+    }
 
     public ConfigurationBuilderBuilder WithClearAddedConfiguration(bool clear = true)
     {
@@ -154,7 +166,10 @@ public sealed class ConfigurationBuilderBuilder
         return ResetBuilder();
     }
 
-    public ConfigurationBuilderBuilder WithCurrentDirectory() => WithBasePath(Directory.GetCurrentDirectory());
+    public ConfigurationBuilderBuilder WithCurrentDirectory()
+    {
+        return WithBasePath(Directory.GetCurrentDirectory());
+    }
 
     public ConfigurationBuilderBuilder WithEnvironment(string environmentName)
     {
@@ -192,18 +207,24 @@ public sealed class ConfigurationBuilderBuilder
     }
 
     public static ConfigurationBuilderBuilder Create<TStartup>(string[]? args = null)
-        => new ConfigurationBuilderBuilder()
+    {
+        return new ConfigurationBuilderBuilder()
             .WithCommandLines(args)
             .WithAppSecrets<TStartup>();
+    }
 
     public static ConfigurationBuilderBuilder Create(Assembly assembly, string[]? args = null)
-        => new ConfigurationBuilderBuilder()
+    {
+        return new ConfigurationBuilderBuilder()
             .WithCommandLines(args)
             .WithAppSecrets(assembly);
+    }
 
     public static ConfigurationBuilderBuilder Create(string[]? args = null)
-        => new ConfigurationBuilderBuilder()
+    {
+        return new ConfigurationBuilderBuilder()
             .WithCommandLines(args);
+    }
 
     private void ConfigureAddFile(IConfigurationBuilder builder)
     {

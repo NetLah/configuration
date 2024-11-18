@@ -64,7 +64,7 @@ public class ConnectionStringManager : IConnectionStringManager
     internal static ProviderName? ParseSelectProviderName(object? selectingProvider)
     {
         return selectingProvider == null
-            ? (global::NetLah.Extensions.Configuration.ProviderName?)default
+            ? default
             : selectingProvider is DbProviders select1
             ? new ProviderName(select1)
             : selectingProvider is string selectingProviderStr

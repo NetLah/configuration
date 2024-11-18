@@ -28,20 +28,25 @@ internal partial class ConnectionStringParser(IEnumerable<KeyValuePair<string, s
     private readonly Func<string, string> _keyNormalizer = keyNormalizer;
 
     // https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Configuration.EnvironmentVariables/src/EnvironmentVariablesConfigurationProvider.cs#L15-L18
-    internal static ProviderName ParseProviderName(string? providerName) => (providerName?.ToUpperInvariant()) switch
+    internal static ProviderName ParseProviderName(string? providerName)
     {
-        "MICROSOFT.DATA.SQLCLIENT" or "MSSQL" or "SQLAZURE" or "SQLSERVER" or "SYSTEM.DATA.SQLCLIENT" => new ProviderName(DbProviders.SQLServer),
-        "MYSQL" or "MYSQLCONNECTOR" or "MYSQL.DATA.MYSQLCLIENT" => new ProviderName(DbProviders.MySQL),
-        "NPGSQL" or "POSTGRES" or "POSTGRESQL" => new ProviderName(DbProviders.PostgreSQL),
-        _ => new ProviderName(providerName),
-    };
+        return (providerName?.ToUpperInvariant()) switch
+        {
+            "MICROSOFT.DATA.SQLCLIENT" or "MSSQL" or "SQLAZURE" or "SQLSERVER" or "SYSTEM.DATA.SQLCLIENT" => new ProviderName(DbProviders.SQLServer),
+            "MYSQL" or "MYSQLCONNECTOR" or "MYSQL.DATA.MYSQLCLIENT" => new ProviderName(DbProviders.MySQL),
+            "NPGSQL" or "POSTGRES" or "POSTGRESQL" => new ProviderName(DbProviders.PostgreSQL),
+            _ => new ProviderName(providerName),
+        };
+    }
 
     internal static KeyValuePair<string, string>[] ParseConfigurationKeyValue(IConfiguration configuration)
-        => configuration
+    {
+        return configuration
             .GetChildren()
             .Where(s => s.Value != null)
             .Select(s => new KeyValuePair<string, string>(s.Key, s.Value!))
             .ToArray();
+    }
 
     public Dictionary<string, ProviderConnectionString> Parse()
     {

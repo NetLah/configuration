@@ -21,7 +21,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Properties\*.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\*.crt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\*.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\*.pem">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
@@ -41,6 +50,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\NetLah.Extensions.Configuration\NetLah.Extensions.Configuration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- System.Drawing.Common 4.7.0 -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rxg9-xrhp-64gj" />
   </ItemGroup>
 
 </Project>
