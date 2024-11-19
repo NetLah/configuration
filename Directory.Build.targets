@@ -30,19 +30,18 @@
     <EFCoreFrameworkVersion Condition="'$(NET_3_1_LESS_OR_STD)' == true">3.1.*</EFCoreFrameworkVersion>
     <EFCoreFrameworkVersion Condition="'$(NET_5_0)' == true">5.*</EFCoreFrameworkVersion>
     <EFCoreFrameworkVersion Condition="'$(NET_6_0)' == true Or '$(NET_7_0)' == true">7.*</EFCoreFrameworkVersion>
-    <EFCoreFrameworkVersion Condition="'$(NET_8_0)' == true">8.*</EFCoreFrameworkVersion>
-    <EFCoreFrameworkVersion Condition="'$(NET_9_0)' == true">9.*</EFCoreFrameworkVersion>
+    <EFCoreFrameworkVersion Condition="'$(NET_8_0_UP)' == true">9.*</EFCoreFrameworkVersion>
     <EFCoreFrameworkVersion Condition="'$(EFCoreFrameworkVersion)' == ''">$(LatestDevFrameworkVersion)</EFCoreFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(NpgsqlEFCoreFrameworkVersion)' == ''">
-    <NpgsqlEFCoreFrameworkVersion Condition="'$(NpgsqlEFCoreFrameworkVersion)' == '' And '$(NET_9_0)' == true">9.*-*</NpgsqlEFCoreFrameworkVersion>
+    <!--<NpgsqlEFCoreFrameworkVersion Condition="'$(NpgsqlEFCoreFrameworkVersion)' == '' And '$(NET_9_0)' == true">9.*-*</NpgsqlEFCoreFrameworkVersion>-->
     <NpgsqlEFCoreFrameworkVersion Condition="'$(NpgsqlEFCoreFrameworkVersion)' == ''">$(EFCoreFrameworkVersion)</NpgsqlEFCoreFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_3_1_LESS_OR_STD)' == true">4.*</NpgsqlVersion>
-    <NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_9_0_UP)' == true">8.*</NpgsqlVersion>
+    <!--<NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_8_0_UP)' == true">9.*</NpgsqlVersion>-->
     <NpgsqlVersion Condition="'$(NpgsqlVersion)' == ''">$(EFCoreFrameworkVersion)</NpgsqlVersion>
     <NuGetPackageVersion Condition="'$(NuGetPackageVersion)' == ''">6.*</NuGetPackageVersion>
     <SystemTextJsonVersion Condition="'$(SystemTextJsonVersion)' == '' And '$(NET_5_0_LESS)' == true">6.*</SystemTextJsonVersion>
@@ -311,7 +310,7 @@
     <PackageReference Update="Npgsql" Version="$(NpgsqlVersion)" />
     <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(NpgsqlEFCoreFrameworkVersion)" />
     <PackageReference Update="EFCore.NamingConventions" Version="$(EFCoreFrameworkVersion)" />
-    <PackageReference Update="Tec.EFCore.NamingConventions" Version="9.0.0-*" />
+    <PackageReference Update="Tec.EFCore.NamingConventions" Version="9.*-*" />
 
     <!--identityserver4 -->
     <PackageReference Update="IdentityModel" Version="7.*" />
