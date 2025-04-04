@@ -2,15 +2,10 @@
 
 namespace NetLah.Extensions.Configuration.Test;
 
-internal class Entry
+internal class Entry(string name, ProviderConnectionString connStr)
 {
-    public Entry(string name, ProviderConnectionString connStr)
-    {
-        Name = name;
-        ConnStr = connStr;
-    }
-    public string Name { get; set; }
-    public ProviderConnectionString ConnStr { get; set; }
+    public string Name { get; set; } = name;
+    public ProviderConnectionString ConnStr { get; set; } = connStr;
 }
 
 internal class EntryComparer : IEqualityComparer<Entry>

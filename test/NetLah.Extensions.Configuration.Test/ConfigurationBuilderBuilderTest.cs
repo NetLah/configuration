@@ -61,12 +61,12 @@ public class ConfigurationBuilderBuilderTest
     {
         providerNames =
         [
-            .. (new string[] { "MemoryConfigurationProvider", "EnvironmentVariablesConfigurationProvider", "EnvironmentVariablesConfigurationProvider" }),
+            .. new string[] { "MemoryConfigurationProvider", "EnvironmentVariablesConfigurationProvider", "EnvironmentVariablesConfigurationProvider" },
             .. providerNames,
         ];
         if (extra != null)
         {
-            extra = [.. (new string?[] { null, null, null }), .. extra];
+            extra = [.. new string?[] { null, null, null }, .. extra];
         }
         Assert.NotNull(configuration);
         var providers = configuration.Providers.ToArray();
