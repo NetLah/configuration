@@ -44,7 +44,7 @@
 
   <PropertyGroup>
     <NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_3_1_LESS_OR_STD)' == true">4.*</NpgsqlVersion>
-    <NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_10_0)' == true">9.*</NpgsqlVersion>
+    <NpgsqlVersion Condition="'$(NpgsqlVersion)' == '' And '$(NET_10_0)' == true">10.*-*</NpgsqlVersion>
     <NpgsqlVersion Condition="'$(NpgsqlVersion)' == ''">$(EFCoreFrameworkVersion)</NpgsqlVersion>
     <NuGetPackageVersion Condition="'$(NuGetPackageVersion)' == ''">6.*</NuGetPackageVersion>
     <SystemTextJsonVersion Condition="'$(SystemTextJsonVersion)' == '' And '$(NET_5_0_LESS)' == true">6.*</SystemTextJsonVersion>
@@ -80,6 +80,7 @@
     <PackageReference Update="NetLah.Extensions.Logging.Reference" Version="1.*-*" />
     <PackageReference Update="NetLah.Extensions.Logging.Serilog" Version="1.*-*" />
     <PackageReference Update="NetLah.Extensions.Logging.Serilog.AspNetCore" Version="1.*-*" />
+    <PackageReference Update="NetLah.Extensions.Logging.Serilog.AspNetCore" Version="1.0.0" Condition="'$(NET_3_1)' == true" />
     <PackageReference Update="NetLah.Extensions.SpaServices.Hosting" Version="1.*-*" />
     <PackageReference Update="NetLah.Extensions.SpaServices.Hosting" Version="1.0.*-*" Condition="'$(NET_7_0_LESS)' == true" />
     <PackageReference Update="Testing.Dynamic.Json" Version="1.*-*" />
@@ -88,18 +89,20 @@
     <PackageReference Update="AngleSharp" Version="*" />
     <PackageReference Update="coverlet.collector" Version="6.*" PrivateAssets="All" />
     <PackageReference Update="FluentAssertions" Version="6.*" PrivateAssets="All" />
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.*" />
     <PackageReference Update="Moq" Version="4.*" />
     <PackageReference Update="NUnit" Version="3.*" />
     <PackageReference Update="NUnit3TestAdapter" Version="4.*" PrivateAssets="All" />
     <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.*" />
     <PackageReference Update="xunit" Version="2.*" />
     <PackageReference Update="xunit.extensibility.core" Version="2.*" />
-    <PackageReference Update="xunit.runner.visualstudio" Version="3.*" PrivateAssets="All" Condition="'$(NET_6_0_UP)' == true" />
+    <PackageReference Update="xunit.runner.visualstudio" Version="3.*" PrivateAssets="All" Condition="'$(NET_8_0_UP)' == true" />
+    <PackageReference Update="xunit.runner.visualstudio" Version="2.*" PrivateAssets="All" Condition="'$(NET_7_0_LESS)' == true" />
     <PackageReference Update="xunit.runner.visualstudio" Version="2.4.*" PrivateAssets="All" Condition="'$(NET_5_0_LESS)' == true" />
 
     <!--misc-->
-    <PackageReference Update="AutoMapper" Version="13.*" Condition="'$(NET_6_0_UP)' == true" />
+    <PackageReference Update="AutoMapper" Version="14.*" Condition="'$(NET_8_0_UP)' == true" />
+    <PackageReference Update="AutoMapper" Version="13.*" Condition="'$(NET_6_0)' == true Or '$(NET_7_0)' == true" />
     <PackageReference Update="AutoMapper" Version="12.*" Condition="'$(NET_5_0_LESS)' == true" />
     <PackageReference Update="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.*" />
     <PackageReference Update="BouncyCastle.NetCore" Version="1.9.*" />
@@ -135,7 +138,8 @@
     <PackageReference Update="SkiaSharp.NativeAssets.NanoServer" Version="2.88.*" />
     <PackageReference Update="SkiaSharp.QrCode" Version="0.6.0" />
     <PackageReference Update="Spire.Doc" Version="11.*" />
-    <PackageReference Update="StackExchange.Redis" Version="2.*" />
+    <PackageReference Update="StackExchange.Redis" Version="2.9.32" Condition="'$(NET_6_0_UP)' == true" />
+    <PackageReference Update="StackExchange.Redis" Version="2.6.122" Condition="'$(NET_5_0_LESS_OR_STD)' == true" />
     <PackageReference Update="Std.UriTemplate" Version="2.*" />
     <PackageReference Update="Tavis.UriTemplates" Version="2.*" />
     <PackageReference Update="TimeZoneConverter" Version="5.*" />
@@ -168,7 +172,7 @@
 
     <!--microsoft CodeAnalysis-->
     <PackageReference Update="Microsoft.CodeAnalysis" Version="4.*" />
-    <PackageReference Update="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="4.*" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.*" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Features" Version="4.*" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.*" />
@@ -288,7 +292,8 @@
     <PackageReference Update="Microsoft.VisualStudio.Web.CodeGenerators.Mvc" Version="$(AspNetFrameworkVersion)" />
 
     <!--microsoft entity framework and data-->
-    <PackageReference Update="Microsoft.Data.SqlClient" Version="5.*" />
+    <PackageReference Update="Microsoft.Data.SqlClient" Version="6.*" />
+    <PackageReference Update="Microsoft.Data.SqlClient" Version="5.*" Condition="'$(NET_7_0_LESS_OR_STD)' == true" />
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="$(EFCoreFrameworkVersion)" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Abstractions" Version="$(EFCoreFrameworkVersion)" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Cosmos" Version="$(EFCoreFrameworkVersion)" />
@@ -340,7 +345,7 @@
     <!--microsoft identity-->
     <PackageReference Update="Microsoft.Graph" Version="5.*" />
     <PackageReference Update="Microsoft.Graph.Core" Version="3.*" />
-    <PackageReference Update="Microsoft.Identity.Abstractions" Version="7.*" />
+    <PackageReference Update="Microsoft.Identity.Abstractions" Version="9.*" />
     <PackageReference Update="Microsoft.Identity.Client" Version="4.*" />
     <PackageReference Update="Microsoft.Identity.Client.Extensions.Msal" Version="4.*" />
     <PackageReference Update="Microsoft.Identity.Web" Version="3.*" />
@@ -417,6 +422,21 @@
 
   </ItemGroup>
 
+  <ItemGroup Condition="'$(NET_7_0_LESS)' == true">
+    <PackageReference Update="Microsoft.CodeAnalysis" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Features" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Features" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Scripting" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.13.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.13.*" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.13.*" />
+    <PackageReference Update="Microsoft.VisualStudio.Threading" Version="17.13.*" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(NET_6_0_UP)' == true">
     <PackageReference Update="Serilog" Version="4.*" />
     <PackageReference Update="Serilog.AspNetCore" Version="$(SerilogVersion)" />
@@ -429,7 +449,7 @@
     <PackageReference Update="Serilog.Settings.Configuration" Version="$(SerilogVersion)" />
     <PackageReference Update="Serilog.Sinks.Console" Version="6.*" />
     <PackageReference Update="Serilog.Sinks.Debug" Version="3.*" />
-    <PackageReference Update="Serilog.Sinks.File" Version="6.*" />
+    <PackageReference Update="Serilog.Sinks.File" Version="7.*" />
     <PackageReference Update="Serilog.Sinks.PeriodicBatching" Version="5.*" />
     <PackageReference Update="Serilog.Sinks.Seq" Version="9.*" />
   </ItemGroup>
@@ -437,6 +457,9 @@
   <ItemGroup Condition="'$(NET_3_1_LESS_OR_STD)' == true">
     <PackageReference Update="Serilog" Version="3.0.*" />
     <PackageReference Update="Serilog.AspNetCore" Version="6.*" />
+    <PackageReference Update="Serilog.Enrichers.CorrelationId" Version="3.*" />
+    <PackageReference Update="Serilog.Enrichers.Environment" Version="2.*" />
+    <PackageReference Update="Serilog.Enrichers.Thread" Version="3.*" />
     <PackageReference Update="Serilog.Extensions.Hosting" Version="5.*" />
     <PackageReference Update="Serilog.Extensions.Logging" Version="3.*" />
     <PackageReference Update="Serilog.Formatting.Compact" Version="1.*" />
@@ -451,6 +474,9 @@
   <ItemGroup Condition="'$(NET_5_0)' == true">
     <PackageReference Update="Serilog" Version="3.0.*" />
     <PackageReference Update="Serilog.AspNetCore" Version="6.*" />
+    <PackageReference Update="Serilog.Enrichers.CorrelationId" Version="3.*" />
+    <PackageReference Update="Serilog.Enrichers.Environment" Version="2.*" />
+    <PackageReference Update="Serilog.Enrichers.Thread" Version="3.*" />
     <PackageReference Update="Serilog.Extensions.Hosting" Version="5.*" />
     <PackageReference Update="Serilog.Extensions.Logging" Version="3.*" />
     <PackageReference Update="Serilog.Formatting.Compact" Version="1.*" />
@@ -464,6 +490,9 @@
 
   <ItemGroup Condition="'$(NET_5_0_LESS_OR_STD)' == true">
     <PackageReference Update="xunit.runner.visualstudio" Version="2.4.*" PrivateAssets="All" />
+    <PackageReference Update="Azure.Core" Version="1.45.*" />
+    <PackageReference Update="Azure.Identity" Version="1.13.*" />
+    <PackageReference Update="System.ClientModel" Version="1.3.*" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(NET_5_0_LESS)' == true">

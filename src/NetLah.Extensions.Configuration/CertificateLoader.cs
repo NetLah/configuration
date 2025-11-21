@@ -75,8 +75,10 @@ public static class CertificateLoader
 
 #if NET9_0_OR_GREATER
             var result = X509CertificateLoader.LoadPkcs12(cert.Export(X509ContentType.Pkcs12), null);
+            cert.Dispose();
 #else
             var result = new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
+            cert.Dispose();
 #endif
             return result;
         }

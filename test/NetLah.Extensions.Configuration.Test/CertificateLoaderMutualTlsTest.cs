@@ -2,6 +2,7 @@
 using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Xunit;
@@ -13,14 +14,14 @@ public class CertificateLoaderMutualTlsTest
     [Theory]
     [InlineData("development.dummy_ecdh_p384-2021June.pfx", false, true)]
     [InlineData("development.dummy_ecdh_p384-2021June_nopass.pfx", false, false)]
-#if NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER && !NET10_0
     [InlineData("development.dummy_ecdh_p521-2021June.pfx", false, true)]
     [InlineData("development.dummy_ecdh_p521-2021June_nopass.pfx", false, false)]
 #endif
     [InlineData("development.dummy_ecdsa_p384-2024Nov_3ds-sha1.pfx", false, true)]
     [InlineData("development.dummy_ecdsa_p384-2024Nov.pfx", false, true)]
     [InlineData("development.dummy_ecdsa_p384-2024Nov_nopass.pfx", false, false)]
-#if NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER && !NET10_0
     [InlineData("development.dummy_ecdsa_p521-2024Nov.pfx", false, true)]
     [InlineData("development.dummy_ecdsa_p521-2024Nov_nopass.pfx", false, false)]
 #endif
@@ -31,12 +32,16 @@ public class CertificateLoaderMutualTlsTest
 #if NET6_0_OR_GREATER
     [InlineData("development.dummy_ecdh_p384-2021June.pem", true, true)]
     [InlineData("development.dummy_ecdh_p384-2021June_noenc.pem", true, false)]
+#if !NET10_0
     [InlineData("development.dummy_ecdh_p521-2021June.pem", true, true)]
     [InlineData("development.dummy_ecdh_p521-2021June_noenc.pem", true, false)]
+#endif
     [InlineData("development.dummy_ecdsa_p384-2024Nov.pem", true, true)]
     [InlineData("development.dummy_ecdsa_p384-2024Nov_noenc.pem", true, false)]
+#if !NET10_0
     [InlineData("development.dummy_ecdsa_p521-2024Nov.pem", true, true)]
     [InlineData("development.dummy_ecdsa_p521-2024Nov_noenc.pem", true, false)]
+#endif
     [InlineData("development.dummy-rsa-2071June.pem", true, true)]
     [InlineData("development.dummy-rsa-2071June_noenc.pem", true, false)]
     [InlineData("development.dummy-rsa4096-2071June.pem", true, true)]
@@ -64,11 +69,11 @@ public class CertificateLoaderMutualTlsTest
     {
         if (certificate.GetRSAPrivateKey() is { })
         {
-            ClientServerAuthenticate(certificate);
+            ClientServerAuthenticate(certificate, false);
         }
         else if (certificate.GetECDsaPrivateKey() is { } ecdsa)
         {
-            ClientServerAuthenticate(certificate);
+            ClientServerAuthenticate(certificate, true);
             Assert.True(ecdsa != null);
         }
         else
@@ -84,12 +89,21 @@ public class CertificateLoaderMutualTlsTest
         public int Port { get => _port; set => _port = value; }
     }
 
-    private static void ClientServerAuthenticate(X509Certificate2 certificate)
+    private static void ClientServerAuthenticate(X509Certificate2 certificate, bool isEcdsa)
     {
         const int port1 = 19000;
         const int port2 = 19999;
         const string plainText = "Hello, world! こんにちは世界 ഹലോ വേൾഡ് Kαληµε´ρα κο´σµε";
         var plainMessage = Encoding.UTF8.GetBytes(plainText);
+
+        if (isEcdsa)
+        {
+            Assert.IsType<ECDsa>(certificate.GetECDsaPrivateKey(), false);
+        }
+        else
+        {
+            Assert.IsType<RSA>(certificate.GetRSAPrivateKey(), false);
+        }
 
         var clientCompleted = new TaskCompletionSource<int>();
         var serverInitialized = new TaskCompletionSource<int>();

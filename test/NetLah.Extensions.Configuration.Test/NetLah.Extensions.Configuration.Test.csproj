@@ -6,10 +6,8 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../../NetLah.snk</AssemblyOriginatorKeyFile>
     <UserSecretsId>netlah-config-test-5f1c15e5acb0</UserSecretsId>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier($(TargetFramework)))' == '.NETCoreApp' And '$([MSBuild]::GetTargetFrameworkVersion($(TargetFramework)))' &lt;= '7.0'">
-    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <!--<CheckEolTargetFramework>false</CheckEolTargetFramework>-->
+    <SuppressTfmSupportBuildErrors>true</SuppressTfmSupportBuildErrors>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
