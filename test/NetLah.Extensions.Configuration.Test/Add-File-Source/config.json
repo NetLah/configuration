@@ -1,6 +1,7 @@
 {
   "MainKey": "Add-File-Source/config.json",
   "JsonSection": {
-    "Add-File-Source": "config.json"
+    "Add-File-Source": "config.json",
+    "ParamOptions": "This is param {{ Options }}"
   }
 }
